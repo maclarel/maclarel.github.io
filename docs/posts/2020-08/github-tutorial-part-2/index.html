@@ -7,33 +7,27 @@
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<meta name="theme-color" content="#494f5c">
 	<meta name="msapplication-TileColor" content="#494f5c">
-<meta itemprop="name" content="Home Office Tour">
-<meta itemprop="description" content="A quick tour of my full time work-from-home office! I&rsquo;ve been working remote for many years now, and for the past ~18 months I&rsquo;ve been working from home almost exclusively (no more travel).
-This is a quick look over the setup that I use every day!
-Equipment shown:
- Desk: Jarvis Standing Desk Monitor: LG 38UC99-W Monitor Arm: Amazon Basics Premium Mouse: Logitech MX Master Keyboard: Das Keyboard 4C Professional (MX Brown) Laptop Stand: Rain Design mStand Dock: CalDigit TS3 Plus Chair: HÅG Capisco Puls Standing mat: Ergodriven Topo">
-<meta itemprop="datePublished" content="2020-07-05T00:00:00+00:00" />
-<meta itemprop="dateModified" content="2020-07-05T00:00:00+00:00" />
-<meta itemprop="wordCount" content="88">
+<meta itemprop="name" content="Git &amp; GitHub Tutorial - Part 2 - Branching, forking, and pull requests">
+<meta itemprop="description" content="This is part 2 of a Git tutorial series - I recommend watching part 1 @ https://youtu.be/jhgoGnYgPuY first!
+In this video we take a look at creating new branches in a Git repository, forking other repositories, and creating pull requests:">
+<meta itemprop="datePublished" content="2020-08-02T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2020-08-02T00:00:00+00:00" />
+<meta itemprop="wordCount" content="40">
 
 
 
-<meta itemprop="keywords" content="homeoffice,wfh," />
-<meta property="og:title" content="Home Office Tour" />
-<meta property="og:description" content="A quick tour of my full time work-from-home office! I&rsquo;ve been working remote for many years now, and for the past ~18 months I&rsquo;ve been working from home almost exclusively (no more travel).
-This is a quick look over the setup that I use every day!
-Equipment shown:
- Desk: Jarvis Standing Desk Monitor: LG 38UC99-W Monitor Arm: Amazon Basics Premium Mouse: Logitech MX Master Keyboard: Das Keyboard 4C Professional (MX Brown) Laptop Stand: Rain Design mStand Dock: CalDigit TS3 Plus Chair: HÅG Capisco Puls Standing mat: Ergodriven Topo" />
+<meta itemprop="keywords" content="git,github," />
+<meta property="og:title" content="Git &amp; GitHub Tutorial - Part 2 - Branching, forking, and pull requests" />
+<meta property="og:description" content="This is part 2 of a Git tutorial series - I recommend watching part 1 @ https://youtu.be/jhgoGnYgPuY first!
+In this video we take a look at creating new branches in a Git repository, forking other repositories, and creating pull requests:" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://maclarel.github.io/posts/2020-07/home-office-tour/" />
-<meta property="article:published_time" content="2020-07-05T00:00:00+00:00" />
-<meta property="article:modified_time" content="2020-07-05T00:00:00+00:00" />
+<meta property="og:url" content="https://maclarel.github.io/posts/2020-08/github-tutorial-part-2/" />
+<meta property="article:published_time" content="2020-08-02T00:00:00+00:00" />
+<meta property="article:modified_time" content="2020-08-02T00:00:00+00:00" />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Home Office Tour"/>
-<meta name="twitter:description" content="A quick tour of my full time work-from-home office! I&rsquo;ve been working remote for many years now, and for the past ~18 months I&rsquo;ve been working from home almost exclusively (no more travel).
-This is a quick look over the setup that I use every day!
-Equipment shown:
- Desk: Jarvis Standing Desk Monitor: LG 38UC99-W Monitor Arm: Amazon Basics Premium Mouse: Logitech MX Master Keyboard: Das Keyboard 4C Professional (MX Brown) Laptop Stand: Rain Design mStand Dock: CalDigit TS3 Plus Chair: HÅG Capisco Puls Standing mat: Ergodriven Topo"/>
+<meta name="twitter:title" content="Git &amp; GitHub Tutorial - Part 2 - Branching, forking, and pull requests"/>
+<meta name="twitter:description" content="This is part 2 of a Git tutorial series - I recommend watching part 1 @ https://youtu.be/jhgoGnYgPuY first!
+In this video we take a look at creating new branches in a Git repository, forking other repositories, and creating pull requests:"/>
 
 	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -42,7 +36,7 @@ Equipment shown:
 	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
 	<link rel="shortcut icon" href="/favicon.ico">
 
-	<title>Home Office Tour</title>
+	<title>Git &amp; GitHub Tutorial - Part 2 - Branching, forking, and pull requests</title>
 	<link rel="stylesheet" href="https://maclarel.github.io/css/style.min.eac77496566fd7d5768fd650ddb0b2b181ca6a2d7c5fdd6fe6b8ba4bf47e566f.css" integrity="sha256-6sd0llZv19V2j9ZQ3bCysYHKai18X91v5ri6S/R+Vm8=" crossorigin="anonymous">
 	
 </head>
@@ -76,34 +70,22 @@ Equipment shown:
 	<main class="site-main section-inner animated fadeIn faster">
 		<article class="thin">
 			<header class="post-header">
-				<div class="post-meta"><span>Jul 5, 2020</span></div>
-				<h1>Home Office Tour</h1>
+				<div class="post-meta"><span>Aug 2, 2020</span></div>
+				<h1>Git &amp; GitHub Tutorial - Part 2 - Branching, forking, and pull requests</h1>
 			</header>
 			<div class="content">
-				<p>A quick tour of my full time work-from-home office! I&rsquo;ve been working remote for many years now, and for the past ~18 months I&rsquo;ve been working from home almost exclusively (no more travel).</p>
-<p>This is a quick look over the setup that I use every day!</p>
-<p>Equipment shown:</p>
-<ul>
-<li>Desk: Jarvis Standing Desk</li>
-<li>Monitor: LG 38UC99-W</li>
-<li>Monitor Arm: Amazon Basics Premium</li>
-<li>Mouse: Logitech MX Master</li>
-<li>Keyboard: Das Keyboard 4C Professional (MX Brown)</li>
-<li>Laptop Stand: Rain Design mStand</li>
-<li>Dock: CalDigit TS3 Plus</li>
-<li>Chair: HÅG Capisco Puls</li>
-<li>Standing mat: Ergodriven Topo</li>
-</ul>
-<p><a href="https://www.youtube.com/watch?v=blZYivfDoDs"><img src="http://img.youtube.com/vi/blZYivfDoDs/0.jpg" alt="Home Office Walkthrough"></a></p>
+				<p>This is part 2 of a Git tutorial series - I recommend watching part 1 @ <a href="https://youtu.be/jhgoGnYgPuY">https://youtu.be/jhgoGnYgPuY</a> first!</p>
+<p>In this video we take a look at creating new branches in a Git repository, forking other repositories, and creating pull requests:</p>
+<p><a href="https://www.youtube.com/watch?v=V8vUYUvDSfY"><img src="http://img.youtube.com/vi/V8vUYUvDSfY/0.jpg" alt="GitHub Tutorial - Part 2"></a></p>
 
 			</div>
 			<hr class="post-end">
 			<footer class="post-info">
 				<p>
-					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://maclarel.github.io/tags/homeoffice">homeoffice</a></span><span class="tag"><a href="https://maclarel.github.io/tags/wfh">wfh</a></span>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://maclarel.github.io/tags/git">git</a></span><span class="tag"><a href="https://maclarel.github.io/tags/github">github</a></span>
 				</p>
-				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>88 Words</p>
-				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2020-07-04 20:00 -0400</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>40 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2020-08-01 20:00 -0400</p>
 			</footer>
 		</article>
 		<aside id="toc">
@@ -111,11 +93,11 @@ Equipment shown:
 			<nav id="TableOfContents"></nav>
 		</aside>
 		<div class="post-nav thin">
-			<a class="next-post" href="https://maclarel.github.io/posts/2020-07/ssh-port-forwarding/">
-				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>SSH Port Forwarding</span>
+			<a class="next-post" href="https://maclarel.github.io/posts/2021-01/github-pages/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Hello via GitHub Pages</span>
 			</a>
-			<a class="prev-post" href="https://maclarel.github.io/posts/2020-04/home-lab-updates/">
-				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Home lab updates</span>
+			<a class="prev-post" href="https://maclarel.github.io/posts/2020-07/github-tutorial-part-1/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Git &amp; GitHub Tutorial - Part 1 - Creating &amp; using a Git repository</span>
 			</a>
 		</div>
 		<div id="comments" class="thin">

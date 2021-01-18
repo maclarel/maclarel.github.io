@@ -9,11 +9,47 @@
     <copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
     <lastBuildDate>Mon, 18 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>testing</title>
-      <link>https://maclarel.github.io/tags/testing/</link>
+      <title>github</title>
+      <link>https://maclarel.github.io/tags/github/</link>
       <pubDate>Mon, 18 Jan 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/tags/testing/</guid>
+      <guid>https://maclarel.github.io/tags/github/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>git</title>
+      <link>https://maclarel.github.io/tags/git/</link>
+      <pubDate>Sun, 02 Aug 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://maclarel.github.io/tags/git/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>linux</title>
+      <link>https://maclarel.github.io/tags/linux/</link>
+      <pubDate>Sun, 19 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://maclarel.github.io/tags/linux/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>ssh</title>
+      <link>https://maclarel.github.io/tags/ssh/</link>
+      <pubDate>Sun, 19 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://maclarel.github.io/tags/ssh/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>tutorial</title>
+      <link>https://maclarel.github.io/tags/tutorial/</link>
+      <pubDate>Sun, 19 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://maclarel.github.io/tags/tutorial/</guid>
       <description></description>
     </item>
     
@@ -45,15 +81,6 @@
     </item>
     
     <item>
-      <title>linux</title>
-      <link>https://maclarel.github.io/tags/linux/</link>
-      <pubDate>Wed, 22 Apr 2020 00:00:00 +0000</pubDate>
-      
-      <guid>https://maclarel.github.io/tags/linux/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>ubiquiti</title>
       <link>https://maclarel.github.io/tags/ubiquiti/</link>
       <pubDate>Wed, 22 Apr 2020 00:00:00 +0000</pubDate>
@@ -68,33 +95,6 @@
       <pubDate>Sun, 12 Apr 2020 00:00:00 +0000</pubDate>
       
       <guid>https://maclarel.github.io/tags/bestpractices/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>support</title>
-      <link>https://maclarel.github.io/tags/support/</link>
-      <pubDate>Sun, 12 Apr 2020 00:00:00 +0000</pubDate>
-      
-      <guid>https://maclarel.github.io/tags/support/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>writing</title>
-      <link>https://maclarel.github.io/tags/writing/</link>
-      <pubDate>Sun, 12 Apr 2020 00:00:00 +0000</pubDate>
-      
-      <guid>https://maclarel.github.io/tags/writing/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>bigdata</title>
-      <link>https://maclarel.github.io/tags/bigdata/</link>
-      <pubDate>Tue, 24 Jul 2018 00:00:00 +0000</pubDate>
-      
-      <guid>https://maclarel.github.io/tags/bigdata/</guid>
       <description></description>
     </item>
     

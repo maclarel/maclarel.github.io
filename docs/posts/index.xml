@@ -10,14 +10,71 @@
 		<atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
 		
 		<item>
-			<title>Hello world</title>
-			<link>https://maclarel.github.io/posts/2021-01/helloworld/</link>
+			<title>Hello via GitHub Pages</title>
+			<link>https://maclarel.github.io/posts/2021-01/github-pages/</link>
 			<pubDate>Mon, 18 Jan 2021 00:00:00 +0000</pubDate>
 			
-			<guid>https://maclarel.github.io/posts/2021-01/helloworld/</guid>
-			<description>Hello World Is anyone out there?</description>
-			<content type="html"><![CDATA[<h1 id="hello-world">Hello World</h1>
-<p>Is anyone out there?</p>
+			<guid>https://maclarel.github.io/posts/2021-01/github-pages/</guid>
+			<description>Well this is new&amp;hellip; Rather than dealing with Blogger, a dubious mobile interface, and spreading things across many services&amp;hellip; why not just use GitHub Pages? I&amp;rsquo;m so used to writing markdown at this point that it just seems easier 😄
+Hugo Inspired by tmpdubz I figured I&amp;rsquo;d do a double-whammy here - play around with/learn GitHub Pages, while also giving my blog a much needed cosmetic overhaul/simplification/rebranding. This lead to Hugo, which is pretty darn neat.</description>
+			<content type="html"><![CDATA[<h1 id="well-this-is-new">Well this is new&hellip;</h1>
+<p>Rather than dealing with Blogger, a dubious mobile interface, and spreading things across many services&hellip; why not just use GitHub Pages? I&rsquo;m so used to writing markdown at this point that it just seems easier 😄</p>
+<h1 id="hugo">Hugo</h1>
+<p>Inspired by <a href="https://github.com/tmpdubz">tmpdubz</a> I figured I&rsquo;d do a double-whammy here - play around with/learn GitHub Pages, while also giving my blog a much needed cosmetic overhaul/simplification/rebranding. This lead to <a href="https://gohugo.io/">Hugo</a>, which is pretty darn neat.</p>
+<p>Hugo is reasonably well documented, config driven, and quite intuitive to pick up and run with. Setting up this whole blog system on GitHub Pages took under 15 minutes (not including manually migrating blog content over).</p>
+<p>Check it out if you&rsquo;re looking to throw together a simple site! You can check out what a finished project looks like by reviewing what&rsquo;s powering this very blog <a href="https://github.com/maclarel/maclarel.github.io">in my GitHub repo</a>.</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>Git &amp; GitHub Tutorial - Part 2 - Branching, forking, and pull requests</title>
+			<link>https://maclarel.github.io/posts/2020-08/github-tutorial-part-2/</link>
+			<pubDate>Sun, 02 Aug 2020 00:00:00 +0000</pubDate>
+			
+			<guid>https://maclarel.github.io/posts/2020-08/github-tutorial-part-2/</guid>
+			<description>This is part 2 of a Git tutorial series - I recommend watching part 1 @ https://youtu.be/jhgoGnYgPuY first!
+In this video we take a look at creating new branches in a Git repository, forking other repositories, and creating pull requests:</description>
+			<content type="html"><![CDATA[<p>This is part 2 of a Git tutorial series - I recommend watching part 1 @ <a href="https://youtu.be/jhgoGnYgPuY">https://youtu.be/jhgoGnYgPuY</a> first!</p>
+<p>In this video we take a look at creating new branches in a Git repository, forking other repositories, and creating pull requests:</p>
+<p><a href="https://www.youtube.com/watch?v=V8vUYUvDSfY"><img src="http://img.youtube.com/vi/V8vUYUvDSfY/0.jpg" alt="GitHub Tutorial - Part 2"></a></p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>Git &amp; GitHub Tutorial - Part 1 - Creating &amp; using a Git repository</title>
+			<link>https://maclarel.github.io/posts/2020-07/github-tutorial-part-1/</link>
+			<pubDate>Sun, 26 Jul 2020 00:00:00 +0000</pubDate>
+			
+			<guid>https://maclarel.github.io/posts/2020-07/github-tutorial-part-1/</guid>
+			<description>In this video we start to delve into using Git and GitHub to track a project. We will create a repository, clone it, make changes, and push those changes back up to GitHub so that everyone can view them!</description>
+			<content type="html"><![CDATA[<p>In this video we start to delve into using Git and GitHub to track a project. We will create a repository, clone it, make changes, and push those changes back up to GitHub so that everyone can view them!</p>
+<p><a href="https://www.youtube.com/watch?v=jhgoGnYgPuY"><img src="http://img.youtube.com/vi/jhgoGnYgPuY/0.jpg" alt="GitHub Tutorial - Part 1"></a></p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>Key-based Authentication for SSH</title>
+			<link>https://maclarel.github.io/posts/2020-07/key-based-auth-ssh/</link>
+			<pubDate>Sun, 19 Jul 2020 00:00:00 +0000</pubDate>
+			
+			<guid>https://maclarel.github.io/posts/2020-07/key-based-auth-ssh/</guid>
+			<description>Tired of trying to remember passwords for every system you access, or annoyed that every system uses the same password? Let&amp;rsquo;s look at a more secure approach that can solve both problems - key based authentication with SSH!</description>
+			<content type="html"><![CDATA[<p>Tired of trying to remember passwords for every system you access, or annoyed that every system uses the same password? Let&rsquo;s look at a more secure approach that can solve both problems - key based authentication with SSH!</p>
+<p><a href="https://www.youtube.com/watch?v=tSqyTH_QS1I"><img src="http://img.youtube.com/vi/tSqyTH_QS1I/0.jpg" alt="Key-based Auth Tutorial"></a></p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>SSH Port Forwarding</title>
+			<link>https://maclarel.github.io/posts/2020-07/ssh-port-forwarding/</link>
+			<pubDate>Sun, 19 Jul 2020 00:00:00 +0000</pubDate>
+			
+			<guid>https://maclarel.github.io/posts/2020-07/ssh-port-forwarding/</guid>
+			<description>Have a service that you don&amp;rsquo;t want to directly expose, or that doesn&amp;rsquo;t have good security, that you still need to access? Today we&amp;rsquo;re going to look at using SSH to accomplish this!
+This tutorial uses nc, UFW/IPTables, and SSH to demonstrate how to forward any port over an SSH connection on TCP 22. You can extend this to just about any service. For example, this works for accessing websites, or other services that are exposed through a web browser.</description>
+			<content type="html"><![CDATA[<p>Have a service that you don&rsquo;t want to directly expose, or that doesn&rsquo;t have good security, that you still need to access? Today we&rsquo;re going to look at using SSH to accomplish this!</p>
+<p>This tutorial uses <code>nc</code>, <code>UFW/IPTables</code>, and <code>SSH</code> to demonstrate how to forward any port over an SSH connection on TCP 22. You can extend this to just about any service. For example, this works for accessing websites, or other services that are exposed through a web browser.</p>
+<p><a href="https://www.youtube.com/watch?v=hb80XpmLJ1U"><img src="http://img.youtube.com/vi/hb80XpmLJ1U/0.jpg" alt="SSH Port Forwarding"></a></p>
 ]]></content>
 		</item>
 		
@@ -359,6 +416,50 @@ Really, it just circles back to what could have been done in the first place, an
 <h1 id="lets-wrap-this-up">Let&rsquo;s wrap this up.</h1>
 <p>Is this technically easy? Absolutely not. It&rsquo;s not easy even in the RDBMS world where a few dozen gigabytes of sales data across 500 retails stores is considered a huge volume of data to report off of. What I&rsquo;m saying at the end of this is that conceptually it&rsquo;s something that seems to get missed in a lot of Big Data implementations, and there are a lot of folks out there who have been blasting Big Data/Hadoop implementations for years despite the fact that a lot of those issues can be tied back to this at the end of the day.</p>
 <p>If this struck a chord with you, and it&rsquo;s something you&rsquo;re having trouble with, keep an eye on this blog and the associated YouTube channel. We&rsquo;re going to be taking a look at a bunch of technology that enables this whole thing to work - Kafka, NiFi, Elasticsearch, Hadoop, etc&hellip; there&rsquo;s no shortage of platforms to let you do this work, and even choosing the &ldquo;wrong&rdquo; one generally won&rsquo;t hamstring you too much, but you have to make that leap to get started!</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>Being Self-Reliant with Technology</title>
+			<link>https://maclarel.github.io/posts/2018-04/self-reliant/</link>
+			<pubDate>Fri, 20 Apr 2018 00:00:00 +0000</pubDate>
+			
+			<guid>https://maclarel.github.io/posts/2018-04/self-reliant/</guid>
+			<description>Let&amp;rsquo;s talk about &amp;ldquo;self-reliance&amp;rdquo; as it relates to career and learning. The three aspects of this we&amp;rsquo;re going to discuss are:
+ Research Failure Asking for Help  Research You&amp;rsquo;re sitting at your desk, and you&amp;rsquo;ve got a piece of code that isn&amp;rsquo;t working, or some other challenge&amp;hellip; it&amp;rsquo;s not even technical! You&amp;rsquo;re stuck and you&amp;rsquo;ve run out of ideas, so you need to turn somewhere else for answers.
+The first instinct of many people in this situation is to simply ask someone else, but I virtually guarantee that others have already done that, and you can likely find your answer on Google!</description>
+			<content type="html"><![CDATA[<p>Let&rsquo;s talk about &ldquo;self-reliance&rdquo; as it relates to career and learning. The three aspects of this we&rsquo;re going to discuss are:</p>
+<ul>
+<li>Research</li>
+<li>Failure</li>
+<li>Asking for Help</li>
+</ul>
+<h1 id="research">Research</h1>
+<p>You&rsquo;re sitting at your desk, and you&rsquo;ve got a piece of code that isn&rsquo;t working, or some other challenge&hellip; it&rsquo;s not even technical! You&rsquo;re stuck and you&rsquo;ve run out of ideas, so you need to turn somewhere else for answers.</p>
+<p>The first instinct of many people in this situation is to simply ask someone else, but I virtually guarantee that others have already done that, and you can likely find your answer on Google! Obvious, right!?</p>
+<p>The problem many people encounter when turning to Google (or any form of research like this) is that they will try to be too specific in what they are looking for, and a lot of the time it will result in little to nothing being found. What you can do, instead, is search for variations of your issue - for example, take parts of an error message or the error code so that you can get a broad understanding of what you could be looking at.</p>
+<p>For tech purposes, Stack Overflow is a common resource that people will turn to directly, or which will come up in searches. Very frequently, you&rsquo;ll find an answer to your question on Stack Overflow, but it may not be the answer. By this I mean that the solution you find may work, but it may not be the most efficient way to address the problem.</p>
+<p>The goal of your research should not only be to find an answer, but to learn from the plethora of information you find so that you can determine the best approach forward.</p>
+<h1 id="failure">Failure</h1>
+<p>Next up, we&rsquo;re going to about failure.</p>
+<p>Isn&rsquo;t this what got us here to start!? Yes, but it&rsquo;s also the best way to learn!</p>
+<p>Continuing with the example of some broken code - you&rsquo;ve now done some research, found ten or twenty different ways to code around the problem, and now you need to implement those and find out:</p>
+<ul>
+<li>Do they work?</li>
+<li>Which is the best for your purposes?</li>
+<li>What can you change to make it work even better?</li>
+</ul>
+<p>It may seem intuitive that you want to test your code before using it in the real world, but this meme exists for a reason:</p>
+<p><img src="https://msdnshared.blob.core.windows.net/media/MSDNBlogsFS/prod.evol.blogs.msdn.com/CommunityServer.Blogs.Components.WeblogFiles/00/00/01/32/02/metablogapi/8054.image_thumb_35C6E986.png" alt="test in production"></p>
+<p>Work in your local (or cloud based) development environment, break things until you find what works best!</p>
+<h1 id="asking-for-help">Asking for Help</h1>
+<p>We&rsquo;ve done research, and now we&rsquo;ve tried, and failed, to solve the problem. On the plus side, we&rsquo;ve learned a ton about the situation and some ways to address and avoid similar problems in the future, but are still stuck&hellip; it&rsquo;s time to ask for help!</p>
+<p>Yes, you could have started out with this, but the reason it&rsquo;s the last step is that the goal here isn&rsquo;t only to solve a problem - it&rsquo;s to learn from solving it. The great part about having done your research, and having tried things, is that you&rsquo;ve not only saved yourself time in the future but you&rsquo;re going to save time for the person you&rsquo;re going to be asking as well.</p>
+<p>The first questions that you will get almost every time when asking for help are &ldquo;What&rsquo;s the issue, and what have you tried?&rdquo;.</p>
+<p>By having tried many things and researched before involving someone else and using their time, you can answer this with an educated statement around what has not worked, what may have gotten you part of the way toward an answer, and what you think might be the path forward.</p>
+<p>Chances are that the person you&rsquo;re asking for help already is going to follow, or already has in their past experience, the exact same steps here. It&rsquo;s due to this experience, that you&rsquo;re now trying to build, that you&rsquo;ll be able to work together to get a quick and good solution.</p>
+<h1 id="wrap-up">Wrap-up</h1>
+<p>I know this all seems like it&rsquo;s common sense, but you&rsquo;d be surprised at how many people skip this process and just jump to asking other people - especially skipping the &ldquo;Failure&rdquo; after not finding an exact answer after some preliminary research. At the end of the day, yes, getting your solution was slower than just asking, but think of all of the time that you&rsquo;ve now saved yourself in the future, as well as the time that would have been working through these same steps with someone else.</p>
 ]]></content>
 		</item>
 		

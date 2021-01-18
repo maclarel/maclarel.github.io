@@ -74,8 +74,3 @@ publishDir = "./docs/"
     name = "Blog"
     url = "posts/"
     weight = 10
-
-  #[[menu.main]]
-  #  name = "Resume"
-  #  url = "resume/resume.html"
-  #  weight = 20

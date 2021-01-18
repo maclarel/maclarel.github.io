@@ -7,85 +7,94 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-    <lastBuildDate>Mon, 24 Dec 2018 12:29:41 +0800</lastBuildDate><atom:link href="https://maclarel.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 18 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Demo</title>
-      <link>https://maclarel.github.io/tags/demo/</link>
-      <pubDate>Mon, 24 Dec 2018 12:29:41 +0800</pubDate>
+      <title>testing</title>
+      <link>https://maclarel.github.io/tags/testing/</link>
+      <pubDate>Mon, 18 Jan 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/tags/demo/</guid>
+      <guid>https://maclarel.github.io/tags/testing/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Image</title>
-      <link>https://maclarel.github.io/tags/image/</link>
-      <pubDate>Mon, 24 Dec 2018 12:29:41 +0800</pubDate>
+      <title>homeoffice</title>
+      <link>https://maclarel.github.io/tags/homeoffice/</link>
+      <pubDate>Sun, 05 Jul 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/tags/image/</guid>
+      <guid>https://maclarel.github.io/tags/homeoffice/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>Typography</title>
-      <link>https://maclarel.github.io/tags/typography/</link>
-      <pubDate>Sat, 29 Sep 2018 11:36:33 +0800</pubDate>
+      <title>wfh</title>
+      <link>https://maclarel.github.io/tags/wfh/</link>
+      <pubDate>Sun, 05 Jul 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/tags/typography/</guid>
+      <guid>https://maclarel.github.io/tags/wfh/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>development</title>
-      <link>https://maclarel.github.io/tags/development/</link>
-      <pubDate>Wed, 02 Apr 2014 00:00:00 +0000</pubDate>
+      <title>homelab</title>
+      <link>https://maclarel.github.io/tags/homelab/</link>
+      <pubDate>Wed, 22 Apr 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/tags/development/</guid>
+      <guid>https://maclarel.github.io/tags/homelab/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>go</title>
-      <link>https://maclarel.github.io/tags/go/</link>
-      <pubDate>Wed, 02 Apr 2014 00:00:00 +0000</pubDate>
+      <title>linux</title>
+      <link>https://maclarel.github.io/tags/linux/</link>
+      <pubDate>Wed, 22 Apr 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/tags/go/</guid>
+      <guid>https://maclarel.github.io/tags/linux/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>golang</title>
-      <link>https://maclarel.github.io/tags/golang/</link>
-      <pubDate>Wed, 02 Apr 2014 00:00:00 +0000</pubDate>
+      <title>ubiquiti</title>
+      <link>https://maclarel.github.io/tags/ubiquiti/</link>
+      <pubDate>Wed, 22 Apr 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/tags/golang/</guid>
+      <guid>https://maclarel.github.io/tags/ubiquiti/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>hugo</title>
-      <link>https://maclarel.github.io/tags/hugo/</link>
-      <pubDate>Wed, 02 Apr 2014 00:00:00 +0000</pubDate>
+      <title>bestpractices</title>
+      <link>https://maclarel.github.io/tags/bestpractices/</link>
+      <pubDate>Sun, 12 Apr 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/tags/hugo/</guid>
+      <guid>https://maclarel.github.io/tags/bestpractices/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>templates</title>
-      <link>https://maclarel.github.io/tags/templates/</link>
-      <pubDate>Wed, 02 Apr 2014 00:00:00 +0000</pubDate>
+      <title>support</title>
+      <link>https://maclarel.github.io/tags/support/</link>
+      <pubDate>Sun, 12 Apr 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/tags/templates/</guid>
+      <guid>https://maclarel.github.io/tags/support/</guid>
       <description></description>
     </item>
     
     <item>
-      <title>themes</title>
-      <link>https://maclarel.github.io/tags/themes/</link>
-      <pubDate>Wed, 02 Apr 2014 00:00:00 +0000</pubDate>
+      <title>writing</title>
+      <link>https://maclarel.github.io/tags/writing/</link>
+      <pubDate>Sun, 12 Apr 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/tags/themes/</guid>
+      <guid>https://maclarel.github.io/tags/writing/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>bigdata</title>
+      <link>https://maclarel.github.io/tags/bigdata/</link>
+      <pubDate>Tue, 24 Jul 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://maclarel.github.io/tags/bigdata/</guid>
       <description></description>
     </item>
     

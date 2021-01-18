@@ -7,48 +7,67 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-    <lastBuildDate>Mon, 24 Dec 2018 12:29:41 +0800</lastBuildDate><atom:link href="https://maclarel.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 18 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>The &#34;figure&#34; Shortcode</title>
-      <link>https://maclarel.github.io/posts/the-figure-shortcode/</link>
-      <pubDate>Mon, 24 Dec 2018 12:29:41 +0800</pubDate>
+      <title>Hello world</title>
+      <link>https://maclarel.github.io/posts/2021-01/helloworld/</link>
+      <pubDate>Mon, 18 Jan 2021 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/posts/the-figure-shortcode/</guid>
-      <description>Hugo has figure shortcode built in, so you can easily add figcaptions or hyperlink rel attributes to images. Documentations can be found here:
-https://gohugo.io/content-management/shortcodes/#figure
-This theme has 3 CSS classes made for figure elements:
- big: images will break the width limit of main content area. left: images will float to the left. right: images will float to the right.  If a figure has no class set, the image will behave just like a normal markdown image: !</description>
+      <guid>https://maclarel.github.io/posts/2021-01/helloworld/</guid>
+      <description>Hello World Is anyone out there?</description>
     </item>
     
     <item>
-      <title>Post With Featured Image</title>
-      <link>https://maclarel.github.io/posts/post-with-featured-image/</link>
-      <pubDate>Mon, 01 Oct 2018 16:15:09 +0800</pubDate>
+      <title>Home Office Tour</title>
+      <link>https://maclarel.github.io/posts/2020-07/home-office-tour/</link>
+      <pubDate>Sun, 05 Jul 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/posts/post-with-featured-image/</guid>
-      <description>Just define the image URL in the content’s front matter, the featured image will be displayed as the background.
-For example:
----images:- https://picsum.photos/1024/768/?random---This is an array, you can set multiple urls, only the first url will be used. These images is also used in Twitter Cards and the Open Graph metadata.</description>
+      <guid>https://maclarel.github.io/posts/2020-07/home-office-tour/</guid>
+      <description>A quick tour of my full time work-from-home office! I&amp;rsquo;ve been working remote for many years now, and for the past ~18 months I&amp;rsquo;ve been working from home almost exclusively (no more travel).
+This is a quick look over the setup that I use every day!
+Equipment shown:
+ Desk: Jarvis Standing Desk Monitor: LG 38UC99-W Monitor Arm: Amazon Basics Premium Mouse: Logitech MX Master Keyboard: Das Keyboard 4C Professional (MX Brown) Laptop Stand: Rain Design mStand Dock: CalDigit TS3 Plus Chair: HÅG Capisco Puls Standing mat: Ergodriven Topo</description>
     </item>
     
     <item>
-      <title>Typography</title>
-      <link>https://maclarel.github.io/posts/typography/</link>
-      <pubDate>Sat, 29 Sep 2018 11:36:33 +0800</pubDate>
+      <title>Home lab updates</title>
+      <link>https://maclarel.github.io/posts/2020-04/home-lab-updates/</link>
+      <pubDate>Wed, 22 Apr 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/posts/typography/</guid>
-      <description>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
- An apple is a sweet, edible fruit produced by an apple tree (Malus pumila).</description>
+      <guid>https://maclarel.github.io/posts/2020-04/home-lab-updates/</guid>
+      <description>Following up from my &amp;ldquo;Starting out with a home lab&amp;rdquo; article I&amp;rsquo;ve made some pretty nice updates to my home lab setup, and I&amp;rsquo;ve also got my {Ansible playbooks](https://github.com/maclarel/ansible_playbooks) up on GitHub now!
+Starting out with the lab additions:
+ Gigabit internet (Cable, unfortunately) recently became available here, so I&amp;rsquo;ve now got a 1000/30 connection! Upload speeds are depressing, but still 3x the speed I had previously! UniFi Dream Machine has taken over my network.</description>
     </item>
     
     <item>
-      <title>Creating a New Theme</title>
-      <link>https://maclarel.github.io/posts/creating-a-new-theme/</link>
-      <pubDate>Sun, 28 Sep 2014 00:00:00 +0000</pubDate>
+      <title>Written communication for support</title>
+      <link>https://maclarel.github.io/posts/2020-04/written-communication-for-support/</link>
+      <pubDate>Sun, 12 Apr 2020 00:00:00 +0000</pubDate>
       
-      <guid>https://maclarel.github.io/posts/creating-a-new-theme/</guid>
-      <description>Introduction This tutorial will show you how to create a simple theme in Hugo. I assume that you are familiar with HTML, the bash command line, and that you are comfortable using Markdown to format content. I&amp;rsquo;ll explain how Hugo uses templates and how you can organize your templates to create a theme. I won&amp;rsquo;t cover using CSS to style your theme.
-We&amp;rsquo;ll start with creating a new site with a very basic template.</description>
+      <guid>https://maclarel.github.io/posts/2020-04/written-communication-for-support/</guid>
+      <description>I&amp;rsquo;ve been working in customer facing roles for quite a while now. Granted, these have largely had the luxury of being in software companies, but I&amp;rsquo;ve also done a brief retail stint and I&amp;rsquo;d like to think the same skills apply in all cases.
+While this will be by no means exhaustive, I want to go over two high-level concepts that I feel are extremely important, and can sometimes be overlooked even by veterans in customer facing positions.</description>
+    </item>
+    
+    <item>
+      <title>Starting out with a home lab</title>
+      <link>https://maclarel.github.io/posts/2020-04/starting-out-with-a-home-lab/</link>
+      <pubDate>Sat, 04 Apr 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://maclarel.github.io/posts/2020-04/starting-out-with-a-home-lab/</guid>
+      <description>Why do I want a home lab? While only you, the reader, can answer this, there are many reasons that I&amp;rsquo;ve build one out. I imagine your reasoning will be similar.
+ There are things you want to have, or automate, that are simply obnoxious otherwise. You&amp;rsquo;ve got specific technologies that you want to explore without a full scale investment. You&amp;rsquo;re working toward certifications (or hands-on experience) with technologies that you want to be using for work.</description>
+    </item>
+    
+    <item>
+      <title>Draining the (Big Data) Swamp</title>
+      <link>https://maclarel.github.io/posts/2018-07/draining-the-big-data-swamp/</link>
+      <pubDate>Tue, 24 Jul 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://maclarel.github.io/posts/2018-07/draining-the-big-data-swamp/</guid>
+      <description>Before we dive too far into this article, let&amp;rsquo;s define a few key terms that will come up at several points:
+ Big Data - Technology relating to the storage, management, and utilization of &amp;ldquo;Big Data&amp;rdquo; (e.g. enormous amounts of data/petabyte scale). Data Lake - A common term to refer to a storage platform for Big Data. In this case, let&amp;rsquo;s assume Apache Hadoop (HDFS) or Amazon S3. Data Warehouse - A large store of data sourced from a variety of sources within a company, then used to guide management or business decisions.</description>
     </item>
     
     <item>
@@ -60,41 +79,6 @@ We&amp;rsquo;ll start with creating a new site with a very basic template.</desc
       <description>Hugo is the world’s fastest framework for building websites. It is written in Go.
 It makes use of a variety of open source projects including:
  https://github.com/russross/blackfriday https://github.com/alecthomas/chroma https://github.com/muesli/smartcrop https://github.com/spf13/cobra https://github.com/spf13/viper  Learn more and contribute on GitHub.</description>
-    </item>
-    
-    <item>
-      <title>(Hu)go Template Primer</title>
-      <link>https://maclarel.github.io/posts/goisforlovers/</link>
-      <pubDate>Wed, 02 Apr 2014 00:00:00 +0000</pubDate>
-      
-      <guid>https://maclarel.github.io/posts/goisforlovers/</guid>
-      <description>Hugo uses the excellent Go html/template library for its template engine. It is an extremely lightweight engine that provides a very small amount of logic. In our experience that it is just the right amount of logic to be able to create a good static website. If you have used other template systems from different languages or frameworks you will find a lot of similarities in Go templates.
-This document is a brief primer on using Go templates.</description>
-    </item>
-    
-    <item>
-      <title>Getting Started with Hugo</title>
-      <link>https://maclarel.github.io/posts/hugoisforlovers/</link>
-      <pubDate>Wed, 02 Apr 2014 00:00:00 +0000</pubDate>
-      
-      <guid>https://maclarel.github.io/posts/hugoisforlovers/</guid>
-      <description>Step 1. Install Hugo Go to Hugo releases and download the appropriate version for your OS and architecture.
-Save it somewhere specific as we will be using it in the next step.
-More complete instructions are available at Install Hugo
-Step 2. Build the Docs Hugo has its own example site which happens to also be the documentation site you are reading right now.
-Follow the following steps:
- Clone the Hugo repository Go into the repo Run hugo in server mode and build the docs Open your browser to http://localhost:1313  Corresponding pseudo commands:</description>
-    </item>
-    
-    <item>
-      <title>Migrate to Hugo from Jekyll</title>
-      <link>https://maclarel.github.io/posts/migrate-from-jekyll/</link>
-      <pubDate>Mon, 10 Mar 2014 00:00:00 +0000</pubDate>
-      
-      <guid>https://maclarel.github.io/posts/migrate-from-jekyll/</guid>
-      <description>Move static content to static Jekyll has a rule that any directory not starting with _ will be copied as-is to the _site output. Hugo keeps all static content under static. You should therefore move it all there. With Jekyll, something that looked like
-▾ &amp;lt;root&amp;gt;/ ▾ images/ logo.png  should become
-▾ &amp;lt;root&amp;gt;/ ▾ static/ ▾ images/ logo.png  Additionally, you&amp;rsquo;ll want any files that should reside at the root (such as CNAME) to be moved to static.</description>
     </item>
     
   </channel>

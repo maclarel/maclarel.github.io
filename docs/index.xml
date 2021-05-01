@@ -7,7 +7,17 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-    <lastBuildDate>Mon, 18 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 01 May 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Keyboard ascension</title>
+      <link>https://maclarel.github.io/posts/2021-05/keebs/</link>
+      <pubDate>Sat, 01 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://maclarel.github.io/posts/2021-05/keebs/</guid>
+      <description>Keebs Mechanical keyboards, sometimes calld keebs, come up from time to time as a bit of a meme. &amp;ldquo;Oh, you&amp;rsquo;ve got one of those loud keyboards.&amp;rdquo; or &amp;ldquo;Why on earth did you spend $500 ona a keyboard that does the same thing as the $5 one I got from Office Depot?&amp;rdquo;.
+I&amp;rsquo;ll say that, for the really cheap end of the spectrum with mechanical keyboards, this really is a meme that holds up.</description>
+    </item>
+    
     <item>
       <title>Hello via GitHub Pages</title>
       <link>https://maclarel.github.io/posts/2021-01/github-pages/</link>
@@ -97,16 +107,6 @@ While this will be by no means exhaustive, I want to go over two high-level conc
       <guid>https://maclarel.github.io/posts/2020-04/starting-out-with-a-home-lab/</guid>
       <description>Why do I want a home lab? While only you, the reader, can answer this, there are many reasons that I&amp;rsquo;ve build one out. I imagine your reasoning will be similar.
  There are things you want to have, or automate, that are simply obnoxious otherwise. You&amp;rsquo;ve got specific technologies that you want to explore without a full scale investment. You&amp;rsquo;re working toward certifications (or hands-on experience) with technologies that you want to be using for work.</description>
-    </item>
-    
-    <item>
-      <title>Draining the (Big Data) Swamp</title>
-      <link>https://maclarel.github.io/posts/2018-07/draining-the-big-data-swamp/</link>
-      <pubDate>Tue, 24 Jul 2018 00:00:00 +0000</pubDate>
-      
-      <guid>https://maclarel.github.io/posts/2018-07/draining-the-big-data-swamp/</guid>
-      <description>Before we dive too far into this article, let&amp;rsquo;s define a few key terms that will come up at several points:
- Big Data - Technology relating to the storage, management, and utilization of &amp;ldquo;Big Data&amp;rdquo; (e.g. enormous amounts of data/petabyte scale). Data Lake - A common term to refer to a storage platform for Big Data. In this case, let&amp;rsquo;s assume Apache Hadoop (HDFS) or Amazon S3. Data Warehouse - A large store of data sourced from a variety of sources within a company, then used to guide management or business decisions.</description>
     </item>
     
   </channel>

@@ -7,7 +7,16 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-    <lastBuildDate>Mon, 18 Jan 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 01 May 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>keybaords</title>
+      <link>https://maclarel.github.io/tags/keybaords/</link>
+      <pubDate>Sat, 01 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://maclarel.github.io/tags/keybaords/</guid>
+      <description></description>
+    </item>
+    
     <item>
       <title>github</title>
       <link>https://maclarel.github.io/tags/github/</link>
@@ -86,15 +95,6 @@
       <pubDate>Wed, 22 Apr 2020 00:00:00 +0000</pubDate>
       
       <guid>https://maclarel.github.io/tags/ubiquiti/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>bestpractices</title>
-      <link>https://maclarel.github.io/tags/bestpractices/</link>
-      <pubDate>Sun, 12 Apr 2020 00:00:00 +0000</pubDate>
-      
-      <guid>https://maclarel.github.io/tags/bestpractices/</guid>
       <description></description>
     </item>
     

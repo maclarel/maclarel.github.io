@@ -14,7 +14,7 @@
       <pubDate>Sun, 16 May 2021 00:00:00 +0000</pubDate>
       
       <guid>https://maclarel.github.io/posts/2021-05/server_rebuild/</guid>
-      <description>What did I do? Half fueled by beer, and half by a playlist of keygen tracks, I decided that it would be a good idea to finally getting around to rebuilding my long-lived server&amp;hellip; No more Windows and its infuriating forced updates (which you used to be able to override), lack of competent OS level event scripting for integration with my UPS, or garbage-tier support from Docker. I wanted something that I&amp;rsquo;d finally have the level of control I wanted for something that backs pretty much eveverything I use outside of work.</description>
+      <description>What did I do? Half fueled by beer, and half by a playlist of keygen tracks, I decided that it would be a good idea to finally getting around to rebuilding my long-lived server&amp;hellip; No more Windows and its infuriating forced updates (which you used to be able to override), lack of clear/consistent OS level event scripting for integration with my UPS, or garbage-tier support from Docker. I wanted something that I&amp;rsquo;d finally have the level of control I wanted for something that backs pretty much eveverything I use outside of work.</description>
     </item>
     
     <item>

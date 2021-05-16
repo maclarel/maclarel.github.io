@@ -9,7 +9,7 @@ toc = true
 
 # What did I do?
 
-Half fueled by beer, and half by a playlist of keygen tracks, I decided that it would be a good idea to finally getting around to rebuilding my long-lived server... No more Windows and its infuriating forced updates (which you used to be able to override), lack of competent OS level event scripting for integration with my UPS, or garbage-tier support from Docker. I wanted something that I'd finally have the level of control I wanted for something that backs pretty much eveverything I use outside of work.
+Half fueled by beer, and half by a playlist of keygen tracks, I decided that it would be a good idea to finally getting around to rebuilding my long-lived server... No more Windows and its infuriating forced updates (which you used to be able to override), lack of clear/consistent OS level event scripting for integration with my UPS, or garbage-tier support from Docker. I wanted something that I'd finally have the level of control I wanted for something that backs pretty much eveverything I use outside of work.
 
 # Why did I do it?
 
@@ -42,7 +42,7 @@ I didn't want to waste time ever dual booting as there was simply no reason to f
 /swap 4g
 ```
 
-I'm not sold on the `swap` ever being useful, but it's there. I had many occasions on Windows where I would run out of memory due to idiotic memory leaks with WSL/Docker, so I figured better safe than sorry. Based on what I'm seeing so far... this really wasn't needed.
+I'm not sold on the `swap` ever being useful, but it's there. I had many occasions on Windows where I would run out of memory due to ridiculous memory leaks with WSL/Docker, so I figured better safe than sorry. Based on what I'm seeing so far... this really wasn't needed.
 
 The `/data` partition is there simply if I need it for apps requiring high disk performance, but so far Plex is quite happy running off of the RAID array and pulling data from my NAS. This may wind up just sitting idle. Similarly, not much use for `/home`. This split was really just so if I ever wanted to reinstall the OS I could maintain those partitions without losing data.
 
@@ -91,7 +91,7 @@ qBittorrent though, that was a challenge. Let's talk about that.
 
 # Challenges
 
-Originally, I was running qBittorrent in a VM so that I could send all of my network traffic out through my VPN provider without needing to impact the host's networking, but this meant maintaining a VM just for this purpose. I originally went this way after the rebuild on Ubuntu Server but I'm going to be frank in saying that qemu/kvm are fucking miserable to manage from command line, and I had no interest in setting up an X env to use virtman or anything else... I was just going to figure it out with Docker.
+Originally, I was running qBittorrent in a VM so that I could send all of my network traffic out through my VPN provider without needing to impact the host's networking, but this meant maintaining a VM just for this purpose. I originally went this way after the rebuild on Ubuntu Server but I'm going to be frank in saying that qemu/kvm are miserable to manage from command line, and I had no interest in setting up an X env to use virtman or anything else... I was just going to figure it out with Docker.
 
 Through this, I found `https://github.com/tprasadtp/protonvpn-docker` which is great - proxied networking through a container running the VPN, and container level reliance on things running. This still had some problems that I had to address through.
 

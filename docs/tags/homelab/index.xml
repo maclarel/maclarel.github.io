@@ -7,7 +7,16 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-    <lastBuildDate>Wed, 22 Apr 2020 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/tags/homelab/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 16 May 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/tags/homelab/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Server Rebuild</title>
+      <link>https://maclarel.github.io/posts/2021-05/server_rebuild/</link>
+      <pubDate>Sun, 16 May 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://maclarel.github.io/posts/2021-05/server_rebuild/</guid>
+      <description>What did I do? Half fueled by beer, and half by a playlist of keygen tracks, I decided that it would be a good idea to finally getting around to rebuilding my long-lived server&amp;hellip; No more Windows and its infuriating forced updates (which you used to be able to override), lack of competent OS level event scripting for integration with my UPS, or garbage-tier support from Docker. I wanted something that I&amp;rsquo;d finally have the level of control I wanted for something that backs pretty much eveverything I use outside of work.</description>
+    </item>
+    
     <item>
       <title>Home lab updates</title>
       <link>https://maclarel.github.io/posts/2020-04/home-lab-updates/</link>

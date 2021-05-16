@@ -6,8 +6,91 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Sat, 01 May 2021 00:00:00 +0000</lastBuildDate>
+		<lastBuildDate>Sun, 16 May 2021 00:00:00 +0000</lastBuildDate>
 		<atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>Server Rebuild</title>
+			<link>https://maclarel.github.io/posts/2021-05/server_rebuild/</link>
+			<pubDate>Sun, 16 May 2021 00:00:00 +0000</pubDate>
+			
+			<guid>https://maclarel.github.io/posts/2021-05/server_rebuild/</guid>
+			<description>What did I do? Half fueled by beer, and half by a playlist of keygen tracks, I decided that it would be a good idea to finally getting around to rebuilding my long-lived server&amp;hellip; No more Windows and its infuriating forced updates (which you used to be able to override), lack of competent OS level event scripting for integration with my UPS, or garbage-tier support from Docker. I wanted something that I&amp;rsquo;d finally have the level of control I wanted for something that backs pretty much eveverything I use outside of work.</description>
+			<content type="html"><![CDATA[<h1 id="what-did-i-do">What did I do?</h1>
+<p>Half fueled by beer, and half by a playlist of keygen tracks, I decided that it would be a good idea to finally getting around to rebuilding my long-lived server&hellip; No more Windows and its infuriating forced updates (which you used to be able to override), lack of competent OS level event scripting for integration with my UPS, or garbage-tier support from Docker. I wanted something that I&rsquo;d finally have the level of control I wanted for something that backs pretty much eveverything I use outside of work.</p>
+<h1 id="why-did-i-do-it">Why did I do it?</h1>
+<p>There were a few things, eluded to above, that really drove this:</p>
+<ul>
+<li>Alcohol</li>
+<li>&ldquo;I&rsquo;ve done this a million times, it&rsquo;ll only take 2 hours tops&rdquo;</li>
+<li>A need for better scripting around UPS status</li>
+<li>A need to avoid repeat downtime due to forced OS updates/reboots</li>
+<li>Really inefficient memory usage on the server due to poor Docker support, pushing me to VMs for several usecases</li>
+<li>With Docker on Windows, there was (is?) no way to expose network shares to containers, so I was forced even more over to VMs</li>
+<li>I was sick and tired of needing to use an RDP client to manage my server when I could just be scripting things instead</li>
+</ul>
+<h1 id="prep-work">Prep work</h1>
+<p>Arguably the largest amount of work here was ensuring that I had all of my configs and persistent data backed up so that it would survive the migration. My old setup was using Hyper-V and Docker backed on a software RAID array - more on the RAID setup later, as it was annoying - so I wanted to get all of that data somewhere that I could either mount it and access it, or easily rebuild it. For the most part, this was just wrangling config files out of VMs and moving them over to my NAS or <a href="https://github.com/maclarel/homelab">repo</a> so that I could pull them later.</p>
+<p>Next up was planning out the build, partition schemes and all. My server had three main volumes originally:</p>
+<ul>
+<li>256GB SSD</li>
+<li>1TB RAID-1</li>
+<li>500GB HDD</li>
+</ul>
+<p>I didn&rsquo;t want to waste time ever dual booting as there was simply no reason to for a machine that lives in my closet, so I split up the SSD as follows (leaving some extra space if I need to grow any partition later):</p>
+<pre><code>/ 30g
+/home 50g
+/data 130g
+/swap 4g
+</code></pre><p>I&rsquo;m not sold on the <code>swap</code> ever being useful, but it&rsquo;s there. I had many occasions on Windows where I would run out of memory due to idiotic memory leaks with WSL/Docker, so I figured better safe than sorry. Based on what I&rsquo;m seeing so far&hellip; this really wasn&rsquo;t needed.</p>
+<p>The <code>/data</code> partition is there simply if I need it for apps requiring high disk performance, but so far Plex is quite happy running off of the RAID array and pulling data from my NAS. This may wind up just sitting idle. Similarly, not much use for <code>/home</code>. This split was really just so if I ever wanted to reinstall the OS I could maintain those partitions without losing data.</p>
+<p>Everything else in terms of data access was just understanding how to mount my shares, and that was pulled from my existing VMs.</p>
+<p>With my data set aside, I was ready to move forward&hellip;</p>
+<h1 id="the-reinstall">The reinstall</h1>
+<p>Well, installing Ubuntu Server is as braindead as it ever has been. Zero drama there.</p>
+<p>Once that was online, I tried to mount my NTFS drives only to find two surprises:</p>
+<ol>
+<li>I could mount my Windows RAID array and read the data, yay!</li>
+<li>I could only mount the NTFS partitions in read-only because the filesystems had apparently been corrupted by an earlier reboot during startup&hellip; Joy.</li>
+</ol>
+<p>Fortunately, I had backups of any data I needed, so no real issue there, but it did mean that I needed to rebuild these. It turns out creating a software RAID on Linux is pretty braindead as well:</p>
+<pre><code>parted -a optimal /dev/sda mklabel gpt
+parted -a optimal /dev/sda mkpart primary btrfs 0% 100%
+parted -a optimal /dev/sda set 1 raid on
+parted -a optimal /dev/sda print
+
+parted -a optimal /dev/sdb mklabel gpt
+parted -a optimal /dev/sdb mkpart primary btrfs 0% 100%
+parted -a optimal /dev/sdb set 1 raid on
+parted -a optimal /dev/sdb print
+
+mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sd[ab]1
+mdadm --detail /dev/md0
+mdadm --examine /dev/sd[ab]1
+
+mkfs.btrfs /dev/md0
+
+mount /dev/md0 /mnt/tesla
+</code></pre><p>From there, it was just a matter of adding it to <code>/etc/fstab</code> and I was off to the races. Same for my network shares. Easy stuff.</p>
+<p>Moving over <code>nginx</code> and <code>pihole</code> was trivial, and in fact somewhat improved, as they were both Docker based anyway.</p>
+<p>Now the fun part - moving my &ldquo;Linux ISO gathering&rdquo; setup (torrent box + vpn) and Plex over to Docker. I decided to start with Plex - pretty much zero drama there, plug &amp; play with <code>plexinc/pms-docker</code> though I did have to rebuild my library and unregister the old (now duplicate) server.</p>
+<p>qBittorrent though, that was a challenge. Let&rsquo;s talk about that.</p>
+<h1 id="challenges">Challenges</h1>
+<p>Originally, I was running qBittorrent in a VM so that I could send all of my network traffic out through my VPN provider without needing to impact the host&rsquo;s networking, but this meant maintaining a VM just for this purpose. I originally went this way after the rebuild on Ubuntu Server but I&rsquo;m going to be frank in saying that qemu/kvm are fucking miserable to manage from command line, and I had no interest in setting up an X env to use virtman or anything else&hellip; I was just going to figure it out with Docker.</p>
+<p>Through this, I found <code>https://github.com/tprasadtp/protonvpn-docker</code> which is great - proxied networking through a container running the VPN, and container level reliance on things running. This still had some problems that I had to address through.</p>
+<ol>
+<li>The relative container reliance offered through docker-compose just means the other container has to be up, not that the VPN needed to be operational.</li>
+<li>The VPN &ldquo;kill switch&rdquo; functionality is unreliable at best in the container world.</li>
+<li>With the VPN connected, I&rsquo;d <a href="https://github.com/tprasadtp/protonvpn-docker/issues/15#issuecomment-841824116">lose all LAN connectivity to the server I was trying to expose</a>.</li>
+</ol>
+<p>I was able to sort out the LAN issue in the Issue linked above, fortunately, but definitely burned a few hours there playing around with different ways to pass in custom <code>ip route</code> commands. Fortunately, the VPN client already handles this for me and the author of that container already exposed the functionality. It took some hunting to figure out, but it&rsquo;s now working. Awesome, now let&rsquo;s figure out a kill switch!</p>
+<p>If you&rsquo;re unfamiliar with the VPN &ldquo;kill switch&rdquo;, it&rsquo;s basically a way to ensure that no network traffic hits the internet from the machine in question if the VPN connection goes down. The VPN I&rsquo;m using does this through managing IPTables rules, however this allows a brief gap where traffic can still slip out when used in a container setting. With rapid reconnects this isn&rsquo;t a huge problem, but better to just not have that surface anyway. I was eventually able to deal with this by forcing the client (<code>qBittorrent</code>) to bind to the VPN&rsquo;s network interface in the VPN container. This interface is ephemeral, but consistently named - if the VPN goes down, the client drops ALL connections as it no longer has a network interface at all, and when it comes back up it detects it and rebinds. This isn&rsquo;t as glorious as using some dedicated routing for it, but it works and is (at this point) more reliable than the kill switch.</p>
+<h1 id="where-did-it-all-land">Where did it all land?</h1>
+<p>This brings me to where I am now. The server is up, I no longer have a single VM running (everything is in Docker), and I can manage everything from an SSH client on my phone. It&rsquo;s pretty much ideal. Functionality aside though&hellip; this actually saves me money.</p>
+<p>When I was running these workloads on Windows, due to the VM reliance, I was consistently using 10-11GB of my 16GB RAM. With this setup on Linux, I&rsquo;m now using <em>less than 1.5GB</em>, or an 85% reduction in resource usage. I&rsquo;ve gone from trying to source another 16GB of RAM, to wondering what I&rsquo;m going to do with all the extra resources I now have at my disposal.</p>
+<p>More to come, I&rsquo;m sure, as well as likely no end to problems, but this has been a fun ~2~ 10 hour project, and I am damn happy with the results at this point!</p>
+]]></content>
+		</item>
 		
 		<item>
 			<title>Keyboard ascension</title>

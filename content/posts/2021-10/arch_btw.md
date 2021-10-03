@@ -43,6 +43,10 @@ My experience of using Linux as a desktop OS in the past were mostly sullied by 
 
 As an aside, the workspace approach here (and more importantly being able to trivially hotkey windows over to specific workspaces) is a game changer after coming from Windows/MacOS. I know that can all be done through various ways there as well, and I use those approaches, but it's *seamless* in i3 (and I'm sure many other WMs). I love it.
 
+Coming over from MacOS for work purposes, and Windows for personal projects, this is also a breath of fresh air. I've got control over what's running, resource utilization is way down, and things are just much... snappier. Despite running this in a VM (and one that only has access to 1/3 my system resources) it is *vastly* more responsive than Windows 10 is on my beast or a PC, or MacOS on my max-spec 2019 MBP. It's really quite mind-boggling what I was living with, and how much better it could have been... despite running exactly the same applications!
+
+The other thing that's of course beneficial here is that nearly all of my projects are based around stuff that just better works on Linux anyway. I don't need to deal with MacOS shipping with GNU Utils that are decades out of date, or the bizarre setup that is WSL (though WSL is still pretty cool!) - I've got the latest and greatest at my fingertips, and nothing to get in the way of my work... only the things that I've chosen to pull in to _support_ my work. Is this... freedom?
+
 # What's next? 
 
 Current things for me to tweak/understand:

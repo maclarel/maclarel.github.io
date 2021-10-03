@@ -6,8 +6,44 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Sun, 16 May 2021 00:00:00 +0000</lastBuildDate>
+		<lastBuildDate>Sun, 03 Oct 2021 00:00:00 +0000</lastBuildDate>
 		<atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>I use Arch, btw</title>
+			<link>https://maclarel.github.io/posts/2021-10/arch_btw/</link>
+			<pubDate>Sun, 03 Oct 2021 00:00:00 +0000</pubDate>
+			
+			<guid>https://maclarel.github.io/posts/2021-10/arch_btw/</guid>
+			<description>I use Arch, btw I&amp;rsquo;ve been using Linux for ages, nearly two decades at this point. I actually dug out my old Mandrake and Slackware CDs while going through a box in my basement the other day&amp;hellip; quite the flashback.
+Despite that tenure on at least some of the hardware I&amp;rsquo;ve owned at any given time, I&amp;rsquo;ve never really used it as a daily driver for desktop usage. That changed today when I finally sat down and set up Arch, complete with forgetting to install a boot loader, on my main rig.</description>
+			<content type="html"><![CDATA[<h1 id="i-use-arch-btw">I use Arch, btw</h1>
+<p>I&rsquo;ve been using Linux for ages, nearly two decades at this point. I actually dug out my old Mandrake and Slackware CDs while going through a box in my basement the other day&hellip; quite the flashback.</p>
+<p>Despite that tenure on at least some of the hardware I&rsquo;ve owned at any given time, I&rsquo;ve never really used it as a daily driver for <em>desktop</em> usage. That changed today when I finally sat down and set up Arch, complete with forgetting to install a boot loader, on my main rig.</p>
+<p>One catch though&hellip; I did it in Virtual Box.</p>
+<h1 id="but-its-in-a-vm">But it&rsquo;s in a VM</h1>
+<p>Yeah, yeah, yeah. I know. I&rsquo;d prefer to have it on bare metal as well, however my main passtime outside of tinkering with technology is playing WoW Classic. At first you may think &ldquo;Ok, that definitely runs under Wine/Proton, right?&rdquo; and yes, it does, but Blizzard also has a long history of banning Linux gamers for perceived cheating, &ldquo;using an unsupported operating system&rdquo;, or any other number of non-sensical reasons.</p>
+<p>In any case, that has kept me using Windows as the main OS installed on bare metal. Flip side, Virtual Box has come a long way and is exceptionally good for virtualizing a desktop OS - especially when compared to Hyper-V which I was using previously.</p>
+<p>All that to say, I&rsquo;ve been working out of i3 on Arch all day despite it running in a VM and the only thing it has made me want to do is quit WoW so I can just use this without any additional overhead. It&rsquo;s wonderful.</p>
+<h1 id="how-did-the-setup-go">How did the setup go?</h1>
+<p>The Arch Wiki&rsquo;s installation guide is reasonably good, though like all things Arch it expects you to do a fair bit of research for yourself. If you haven&rsquo;t toyed around with Arch before, or at least don&rsquo;t have a very good understanding of how to do things like manually configure a network interface from scratch, I&rsquo;d suggest against doing this for your first time unless you&rsquo;re into learning-by-doing (like I am).</p>
+<p>I&rsquo;ve dabbled with Gentoo in the past, and this is nowhere near that level of confusing to setup, but it&rsquo;s still not a pretty GUI like you&rsquo;ll get with Ubuntu or Pop, etc&hellip; That said, that didn&rsquo;t really factor into my decision.</p>
+<p>I had a few hiccups during installation, mostly due to not quite understanding what I was getting &ldquo;for free&rdquo; with the installation vs what was running on the live disk I used for the installation. This meant that I had to spend a good 30-45 minutes figuring out all of the packages I needed to get my networking functional (I ended up using <code>networkd</code> for the sake of having it in line with my other boxen). Beyond that, though, was an infuriating 90 minute stretch of trying to get i3 to work&hellip;</p>
+<p>i3 relies on <code>i3-config-wizard</code> to do the initial configuration file creation to actually be able to start i3, however <em>that wizard requires X to be running despite still being a text interface</em> which is beyond bizarre. It wasn&rsquo;t until I got xmonad running (and realizing that it wasn&rsquo;t for me) that I was able to actually get i3 configured and working. Haven&rsquo;t looked back since. After coming from a lot of tinkering with Amethyst, DisplayFusion, Yabai, and other &ldquo;window managers&rdquo; on Windows and MacOS, having something like i3 and it&rsquo;s integration with Xorg is&hellip; well, mindblowing. Full control over everything. It&rsquo;s perfect.</p>
+<p>Without getting into the religious debates of what WM is the best, least bloated, etc&hellip; This is a fantastic example of the type of freedom you can get when you move away from Windows/MacOS and into an ecosystem that&rsquo;s literally built around user choice and flexibility. I&rsquo;ve never been one to enjoy playing within the rules, and now I truly don&rsquo;t have to.</p>
+<h1 id="hows-it-going">How&rsquo;s it going?</h1>
+<p>I&rsquo;ll do another post in a few weeks to recap using Arch + i3 as a daily driver for that period of time, but initial impressions are exclusively positive.</p>
+<p>My experience of using Linux as a desktop OS in the past were mostly sullied by my own choices (Slackware as a daily driver? Eep!) or lack of knowledge at the time&hellip; but hey, that&rsquo;s how you learn. With the readily available knowledge between Wikis, colleages, friends, and Reddit it&rsquo;s now somewhat trivial to find answers to questions that would have taken weeks to sort out on IRC or forums (though I still enjoy both).</p>
+<p>As an aside, the workspace approach here (and more importantly being able to trivially hotkey windows over to specific workspaces) is a game changer after coming from Windows/MacOS. I know that can all be done through various ways there as well, and I use those approaches, but it&rsquo;s <em>seamless</em> in i3 (and I&rsquo;m sure many other WMs). I love it.</p>
+<h1 id="whats-next">What&rsquo;s next?</h1>
+<p>Current things for me to tweak/understand:</p>
+<ul>
+<li>Can I get any GPU passthrough configured for this, and do I even need/want to? Performance is great for any non-gaming, and I can just pop out to Windows for that.</li>
+<li>Play around with some more i3 config to get tiling layout just how I want it, and align keybinds with what I&rsquo;m using on my other systems to limit context switching.</li>
+<li>Play around with i3 gaps for a sexier layout, though I am loving the completely efficient use of space that i3 is giving me so far.</li>
+</ul>
+]]></content>
+		</item>
 		
 		<item>
 			<title>Server Rebuild</title>
@@ -38,7 +74,7 @@
 <li>500GB HDD</li>
 </ul>
 <p>I didn&rsquo;t want to waste time ever dual booting as there was simply no reason to for a machine that lives in my closet, so I split up the SSD as follows (leaving some extra space if I need to grow any partition later):</p>
-<pre><code>/ 30g
+<pre tabindex="0"><code>/ 30g
 /home 50g
 /data 130g
 /swap 4g
@@ -54,7 +90,7 @@
 <li>I could only mount the NTFS partitions in read-only because the filesystems had apparently been corrupted by an earlier reboot during startup&hellip; Joy.</li>
 </ol>
 <p>Fortunately, I had backups of any data I needed, so no real issue there, but it did mean that I needed to rebuild these. It turns out creating a software RAID on Linux is pretty braindead as well:</p>
-<pre><code>parted -a optimal /dev/sda mklabel gpt
+<pre tabindex="0"><code>parted -a optimal /dev/sda mklabel gpt
 parted -a optimal /dev/sda mkpart primary btrfs 0% 100%
 parted -a optimal /dev/sda set 1 raid on
 parted -a optimal /dev/sda print
@@ -266,7 +302,7 @@ While this will be by no means exhaustive, I want to go over two high-level conc
 <p>This may sound simple, and it is a straight forward concept, but it&rsquo;s all too oft ignored. We&rsquo;ll dive into some examples below as to how easy it is to really nail this and create a great customer experience.</p>
 <h2 id="setting-expectations">Setting Expectations</h2>
 <p>Have you ever received this email when working with a company?</p>
-<pre><code>Hi &lt;Name&gt;,
+<pre tabindex="0"><code>Hi &lt;Name&gt;,
 
 Thanks for reaching out for assistance!
 
@@ -287,7 +323,7 @@ Regards,
 <p>You may be reading this and think that the next steps are solely with the person troubleshooting the problem on the Support side, but you&rsquo;d be partially wrong. With no firm timeline established, the affected user who submitted the ticket also has to proactively reach out to Support if they need an update, since they don&rsquo;t know when they&rsquo;ll hear back. This makes for a poor customer experience since they&rsquo;re left wondering if they&rsquo;re going to hear back in an hour, a day, a week, or never.</p>
 <p>All to often I&rsquo;ll see this scenario play out, even with industry veterans, and almost without fail the very next entry in the ticket (regardless of timeline) is from the customer saying &ldquo;Any updates?&rdquo;.</p>
 <p>Let&rsquo;s do a small tweak, and outline the impact it has:</p>
-<pre><code>Hi &lt;Name&gt;,
+<pre tabindex="0"><code>Hi &lt;Name&gt;,
 
 Thanks for reaching out for assistance!
 
@@ -312,7 +348,7 @@ Regards,
 <p>In this case, the customer is left without any information as to the status of their request and feels ignored. It&rsquo;s a safe bet that (assuming they haven&rsquo;t given up) that ticket owner is going to come in the next morning and see &ldquo;Any updates?&rdquo; front and center on that ticket. The customer won&rsquo;t be happy.</p>
 <h3 id="scenario-2---the-ticket-is-updated-before-the-close-of-business-the-following-day-saying-that-theres-no-progress">Scenario 2 - The ticket is updated before the close of business the following day saying that there&rsquo;s no progress</h3>
 <p>Prior to the end of the following day, the ticket owner sends off this update:</p>
-<pre><code>Hi &lt;Name&gt;,
+<pre tabindex="0"><code>Hi &lt;Name&gt;,
 
 I just wanted to send you an update to note that I'm still looking into this here. I'll be in touch ASAP with next steps.
 
@@ -321,7 +357,7 @@ Regards,
 </code></pre><p>We&rsquo;re making progress with this, but still not perfect! Let&rsquo;s take a look at Scenario 3 for how we can reliable salvage this.</p>
 <h3 id="scenario-3---the-ticket-is-updated-and-expectations-are-reset">Scenario 3 - The ticket is updated, and expectations are reset</h3>
 <p>All we&rsquo;re going to do here is a minor tweak to the wording above. This will let us reset expectations with the customer and keep the next steps entirely on the Support side (save for a possible escalation).</p>
-<pre><code>Hi &lt;Name&gt;,
+<pre tabindex="0"><code>Hi &lt;Name&gt;,
 
 I just wanted to send you an update to note that I'm still looking into this here. I'll be looking into this first thing tomorrow morning and will provide you with an update by mid-day tomorrow.
 
@@ -346,11 +382,11 @@ Regards,
 <p>Clear and Concise Wording</p>
 <p>Time is valuable. If you can clearly, and politely, communicate a thought in two sentences instead of two paragraphs, do it. I&rsquo;ll provide examples of good, and bad, responses below. We&rsquo;ll strip the pleasantries since we&rsquo;re just focusing on content.</p>
 <h3 id="example-1">Example 1</h3>
-<pre><code>I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. This type of approach is quite inefficient with large data sets.
+<pre tabindex="0"><code>I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. This type of approach is quite inefficient with large data sets.
 
 You may want to consider loading values into a set for evaluation as this will likely perform much better.
 </code></pre><h3 id="example-2">Example 2</h3>
-<pre><code> I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. While a brute-force search is simple to implement, and will always find a solution if it exists, its cost is proportional to the number of candidate solutions – which in many practical problems tends to grow very quickly as the size of the problem increases 
+<pre tabindex="0"><code> I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. While a brute-force search is simple to implement, and will always find a solution if it exists, its cost is proportional to the number of candidate solutions – which in many practical problems tends to grow very quickly as the size of the problem increases 
 
 You may want to consider loading values into a set for evaluation as this will likely perform much better. A set will allow you to only store the required values until a duplicate is found, which will likely result in significantly smaller memory utilization.
 </code></pre><p>I&rsquo;ll note that both of these are completely valid responses that most customers would be happy to receive. In order to keep you, the reader of this article, paying attention I&rsquo;ve limited the verbosity that could have otherwise been included in <code>Example 2</code>.</p>
@@ -368,7 +404,7 @@ You may want to consider loading values into a set for evaluation as this will l
 <li>Proof-read your messages.</li>
 </ul>
 <p>I&rsquo;ll paraphrase a message I received recently which I think is a prime example of how not to write something.</p>
-<pre><code>Hi Logan,
+<pre tabindex="0"><code>Hi Logan,
 
 Hope you are doing well,
 

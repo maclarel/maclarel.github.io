@@ -6,8 +6,77 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Sun, 03 Oct 2021 00:00:00 +0000</lastBuildDate>
+		<lastBuildDate>Mon, 08 Nov 2021 00:00:00 +0000</lastBuildDate>
 		<atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>Relentless follow-through</title>
+			<link>https://maclarel.github.io/posts/2021-11/expectations/</link>
+			<pubDate>Mon, 08 Nov 2021 00:00:00 +0000</pubDate>
+			
+			<guid>https://maclarel.github.io/posts/2021-11/expectations/</guid>
+			<description>Way back in April 2020 I wrote an article called Written communication for support which covered some high level best practices around setting, managing, and resetting expectations. Think of this as a spiritual successor to that article, as we&amp;rsquo;re going to talk about the other side of the coin - relentless follow-through.
+To put &amp;ldquo;relentless follow-through&amp;rdquo; in more direct terms, I want to discuss some best practices around timeliness of responses even when there&amp;rsquo;s no news, internal follow-up and expectation setting, and some options for collaboration (depending on the size/maturity of your business).</description>
+			<content type="html"><![CDATA[<p>Way back in April 2020 I wrote an article called <a href="../2020-04/written-communication-for-support.md">Written communication for support</a> which covered some high level best practices around setting, managing, and resetting expectations. Think of this as a spiritual successor to that article, as we&rsquo;re going to talk about the other side of the coin - relentless follow-through.</p>
+<p>To put &ldquo;relentless follow-through&rdquo; in more direct terms, I want to discuss some best practices around timeliness of responses <em>even when there&rsquo;s no news</em>, internal follow-up and expectation setting, and some options for collaboration (depending on the size/maturity of your business).</p>
+<h1 id="relentless-sounds-like-a-strong-word">Relentless sounds like a strong word&hellip;</h1>
+<p>It is.</p>
+<p>While I don&rsquo;t remember the exact etymology of this phrase, this is something that was said to me early in my career and it really stuck. Frankly, regardless of <em>technical</em> skill, I&rsquo;d argue that the ability to effectively manage expectations and follow-through on commitments is the single most important aspect of success for anyone customer facing. This comes with a <em>lot</em> of &ldquo;gotchas&rdquo; though.</p>
+<ul>
+<li>How do you know what you&rsquo;re saying is true or realistic?</li>
+<li>How can you advise on timelines?</li>
+<li>What other resources (human or otherwise) can you leverage?</li>
+</ul>
+<p>We&rsquo;ll deconstruct a few of these, but before we get to those I want to try to sum up this entire concept in one paragraph in case we hit a TL;DR situation:</p>
+<p><em>Your ability, as a support engineer, to keep your customers informed of the progress of investigations is paramount. In terms of customer satisfaction this is often more important than the actual time to resolution.</em></p>
+<h2 id="setting-realistic-expectations">Setting realistic expectations</h2>
+<p>Without rehashing too much content in the other article, the key point I want to get across here is that it doesn&rsquo;t help to bullshit people. I&rsquo;m not suggesting airing dirty laundry, or providing exhaustive detail, but if something flat out cannot be done it doesn&rsquo;t help to imply that it might be. Similarly, it&rsquo;s not overly helpful to imply that extremely minor (low visibility/low impact) bugs will get fixed quickly. There are some wording techniques to help get around these, and that will help convey this messaging in a more subtle fashion.</p>
+<pre><code>Sorry to hear that you're running into &lt;Issue X&gt;. We've been able to confirm this as a bug here, and are following up with our teams internally to work on a fix. I can't advise on when, we'll be able to deliver a fix for this problem, however I'd suggest keeping an eye on our release notes where a fix would be advertised.
+
+In the mean time, we'd suggest the following workaround to help mitigate this issue in your usage:
+
+1. 
+2.
+3.
+etc....
+
+Please let us know if you have any further questions!
+</code></pre><p>The wording here is strategic in a few ways:</p>
+<ul>
+<li>The issue in question is specifically called out and acknowledged.</li>
+<li>Ownership of the problem has been transferred to another <em>non-customer facing</em> organization.</li>
+<li>Expectations are set that a fix may never materialize, or at the very least may not be prioritized.</li>
+<li>The customer is provided with information on how they can see progress.</li>
+<li>A workaround is offered to help mitigate their business impact.</li>
+</ul>
+<p>Five key factors in, effectively, two lines of text.</p>
+<p>Building on this, you may also find yourself working in positions where you&rsquo;re working extremely closely with customers and have relationships <em>with them</em> that you can leverage. Often, issues will be exaggerated or at the very least not fully understood by the people reporting them. When you&rsquo;ve got this level of access, especially in a real-time fashion, it can be extremely helpful to spend a few minutes dissecting the actual problematic use-case to understand both if it&rsquo;s a realistic scenario, and whether or not it&rsquo;s something that&rsquo;s worth everyone&rsquo;s time to follow up on.</p>
+<p>As an example, you may receive a ticket like this:</p>
+<pre><code>Hi Support, 
+
+X part of the UI is broken in your product. This is blocking critical workflows on our side. See attached.
+</code></pre><p>A few helpful questions to ask to start (either in your own head, or to the customer):</p>
+<ul>
+<li>Is the only way to do what they&rsquo;re trying to do (i.e. is this actually blocking work)?
+<ul>
+<li>Note: This is two-fold - both helps clarify the priority of the issue, as well as your ability to offer alternatives.</li>
+</ul>
+</li>
+<li>Is this problem actually a problem, or is it &ldquo;working as intended&rdquo; and unlikely to be &ldquo;fixed&rdquo;?</li>
+<li>Does the person reporting the problem fully understand the scenario, or are they just relaying information?</li>
+</ul>
+<p>If you find that the answer to most, or all, of these questions is &ldquo;No.&rdquo; there&rsquo;s ample opportunity here to have a discussion with the complaining party about what&rsquo;s realistic to deliver on and to negotiate a proper prioritization for both you <em>and</em> them as they&rsquo;ll also have stakeholders to report back to.</p>
+<h2 id="managing-timelines">Managing timelines</h2>
+<p>This is a very tricky one in the Support world, and I don&rsquo;t want to imply that you&rsquo;ll ever have much control over it given the interrupt-driven nature of the work and heavy reliance on other parts of your organization. Despite the lack of control over the <em>technical outcome</em> in some scenarios, this is also the concept at the very core of &ldquo;relentless follow-through&rdquo;.</p>
+<p>At a high level, this is your time to set the cadence for <em>standing</em> communication and by that I mean the pace of communication <em>when there is nothing actionable to provide to the customer</em>. As a side note - some companies address through this &ldquo;next response SLAs&rdquo;, which I&rsquo;d generally argue are overly aggressive and detract from quality, but you may see that come up. I&rsquo;d generally suggest setting the expectation <em>and delivering on it</em> of an update <em>at least</em> every two business days outlining current status. Working on an investigation that has been escalated to engineering and haven&rsquo;t heard back? No problem, note that the investigation is still ongoing and you&rsquo;ll provide another update on status before end-of-day two days from then. Haven&rsquo;t had a chance to look at an issue that&rsquo;s in your ballpark to address? Same deal, &ldquo;apologies, still investigating&rdquo;, etc&hellip;</p>
+<p>Similarly, you&rsquo;ll generally want to use a similar cadence for issues where you&rsquo;re reliant on someone else to provide you with an update. Escalation with engineering? Ping them every 2 days (or more often depending on issue impact). Waiting to hear back from your real estate agent? Ping them every 2 days. This is something applicable well beyond just the world of Support, and I think you&rsquo;ll find it helpful in just about any aspect of life. Similarly, I think you&rsquo;ll get a solid realization of when other people are doing it&hellip; and when they <em>aren&rsquo;t</em>.</p>
+<p>Realizing that I just provided seemingly trivial examples following a statement about how tricky this is, that&rsquo;s intentional. The actual <em>execution</em> of this concept is also trivial, yet this is the <em>number one</em> reason I&rsquo;ve seen for escalations in any support organization I&rsquo;ve worked at. Customers are left wondering as to what the status of their investigation is, or why it hasn&rsquo;t progressed, or why they haven&rsquo;t heard back on questions they&rsquo;ve asked. Obviously if things are dragging on for extreme periods of time there will be some legitimate frustration, but this sort of communication technique <em>and cadence</em> will generally curb a significant majority of non-technical escalations.</p>
+<h2 id="leveraging-others">Leveraging others</h2>
+<p>While this may seem like the basics of working on any sort of team, this is intentionally last in my list as both of the topics above play directly into this. I&rsquo;m not going to spend a significant amount of time on this point, either, as it&rsquo;s always going to be subjective. I&rsquo;ll leave it simply by stating that the relationships/connections you build within your team/company/customers are <em>almost always</em> going to be your most valuable asset in terms of delivery. Short of extremely simplistic products, it is virtually impossible for an individual to be an expert on <em>everything</em> - your ability to know who to ask <em>and to leverage your relationship with them</em> to get a timely response/deeper understanding will pay dividends even beyond the scope of an individual job.</p>
+<h1 id="this-all-sounds-so-simple">This all sounds so simple</h1>
+<p>It does, and in some respects it is. The biggest challenge around all of this is the mindset shift to fit within it and the actual execution on a consistent basis. It may seem counterintuitive to send someone an update saying that there&rsquo;s no update, or to nag someone that you trust is doing the best they can, however in both cases it demonstrates <em>your</em> investment in the situation and that in all regards nothing, and no one, has been forgotten about.</p>
+]]></content>
+		</item>
 		
 		<item>
 			<title>I use Arch, btw</title>
@@ -76,7 +145,7 @@ Despite that tenure on at least some of the hardware I&amp;rsquo;ve owned at any
 <li>500GB HDD</li>
 </ul>
 <p>I didn&rsquo;t want to waste time ever dual booting as there was simply no reason to for a machine that lives in my closet, so I split up the SSD as follows (leaving some extra space if I need to grow any partition later):</p>
-<pre tabindex="0"><code>/ 30g
+<pre><code>/ 30g
 /home 50g
 /data 130g
 /swap 4g
@@ -92,7 +161,7 @@ Despite that tenure on at least some of the hardware I&amp;rsquo;ve owned at any
 <li>I could only mount the NTFS partitions in read-only because the filesystems had apparently been corrupted by an earlier reboot during startup&hellip; Joy.</li>
 </ol>
 <p>Fortunately, I had backups of any data I needed, so no real issue there, but it did mean that I needed to rebuild these. It turns out creating a software RAID on Linux is pretty braindead as well:</p>
-<pre tabindex="0"><code>parted -a optimal /dev/sda mklabel gpt
+<pre><code>parted -a optimal /dev/sda mklabel gpt
 parted -a optimal /dev/sda mkpart primary btrfs 0% 100%
 parted -a optimal /dev/sda set 1 raid on
 parted -a optimal /dev/sda print
@@ -304,7 +373,7 @@ While this will be by no means exhaustive, I want to go over two high-level conc
 <p>This may sound simple, and it is a straight forward concept, but it&rsquo;s all too oft ignored. We&rsquo;ll dive into some examples below as to how easy it is to really nail this and create a great customer experience.</p>
 <h2 id="setting-expectations">Setting Expectations</h2>
 <p>Have you ever received this email when working with a company?</p>
-<pre tabindex="0"><code>Hi &lt;Name&gt;,
+<pre><code>Hi &lt;Name&gt;,
 
 Thanks for reaching out for assistance!
 
@@ -325,7 +394,7 @@ Regards,
 <p>You may be reading this and think that the next steps are solely with the person troubleshooting the problem on the Support side, but you&rsquo;d be partially wrong. With no firm timeline established, the affected user who submitted the ticket also has to proactively reach out to Support if they need an update, since they don&rsquo;t know when they&rsquo;ll hear back. This makes for a poor customer experience since they&rsquo;re left wondering if they&rsquo;re going to hear back in an hour, a day, a week, or never.</p>
 <p>All to often I&rsquo;ll see this scenario play out, even with industry veterans, and almost without fail the very next entry in the ticket (regardless of timeline) is from the customer saying &ldquo;Any updates?&rdquo;.</p>
 <p>Let&rsquo;s do a small tweak, and outline the impact it has:</p>
-<pre tabindex="0"><code>Hi &lt;Name&gt;,
+<pre><code>Hi &lt;Name&gt;,
 
 Thanks for reaching out for assistance!
 
@@ -350,7 +419,7 @@ Regards,
 <p>In this case, the customer is left without any information as to the status of their request and feels ignored. It&rsquo;s a safe bet that (assuming they haven&rsquo;t given up) that ticket owner is going to come in the next morning and see &ldquo;Any updates?&rdquo; front and center on that ticket. The customer won&rsquo;t be happy.</p>
 <h3 id="scenario-2---the-ticket-is-updated-before-the-close-of-business-the-following-day-saying-that-theres-no-progress">Scenario 2 - The ticket is updated before the close of business the following day saying that there&rsquo;s no progress</h3>
 <p>Prior to the end of the following day, the ticket owner sends off this update:</p>
-<pre tabindex="0"><code>Hi &lt;Name&gt;,
+<pre><code>Hi &lt;Name&gt;,
 
 I just wanted to send you an update to note that I'm still looking into this here. I'll be in touch ASAP with next steps.
 
@@ -359,7 +428,7 @@ Regards,
 </code></pre><p>We&rsquo;re making progress with this, but still not perfect! Let&rsquo;s take a look at Scenario 3 for how we can reliable salvage this.</p>
 <h3 id="scenario-3---the-ticket-is-updated-and-expectations-are-reset">Scenario 3 - The ticket is updated, and expectations are reset</h3>
 <p>All we&rsquo;re going to do here is a minor tweak to the wording above. This will let us reset expectations with the customer and keep the next steps entirely on the Support side (save for a possible escalation).</p>
-<pre tabindex="0"><code>Hi &lt;Name&gt;,
+<pre><code>Hi &lt;Name&gt;,
 
 I just wanted to send you an update to note that I'm still looking into this here. I'll be looking into this first thing tomorrow morning and will provide you with an update by mid-day tomorrow.
 
@@ -384,11 +453,11 @@ Regards,
 <p>Clear and Concise Wording</p>
 <p>Time is valuable. If you can clearly, and politely, communicate a thought in two sentences instead of two paragraphs, do it. I&rsquo;ll provide examples of good, and bad, responses below. We&rsquo;ll strip the pleasantries since we&rsquo;re just focusing on content.</p>
 <h3 id="example-1">Example 1</h3>
-<pre tabindex="0"><code>I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. This type of approach is quite inefficient with large data sets.
+<pre><code>I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. This type of approach is quite inefficient with large data sets.
 
 You may want to consider loading values into a set for evaluation as this will likely perform much better.
 </code></pre><h3 id="example-2">Example 2</h3>
-<pre tabindex="0"><code> I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. While a brute-force search is simple to implement, and will always find a solution if it exists, its cost is proportional to the number of candidate solutions – which in many practical problems tends to grow very quickly as the size of the problem increases 
+<pre><code> I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. While a brute-force search is simple to implement, and will always find a solution if it exists, its cost is proportional to the number of candidate solutions – which in many practical problems tends to grow very quickly as the size of the problem increases 
 
 You may want to consider loading values into a set for evaluation as this will likely perform much better. A set will allow you to only store the required values until a duplicate is found, which will likely result in significantly smaller memory utilization.
 </code></pre><p>I&rsquo;ll note that both of these are completely valid responses that most customers would be happy to receive. In order to keep you, the reader of this article, paying attention I&rsquo;ve limited the verbosity that could have otherwise been included in <code>Example 2</code>.</p>
@@ -406,7 +475,7 @@ You may want to consider loading values into a set for evaluation as this will l
 <li>Proof-read your messages.</li>
 </ul>
 <p>I&rsquo;ll paraphrase a message I received recently which I think is a prime example of how not to write something.</p>
-<pre tabindex="0"><code>Hi Logan,
+<pre><code>Hi Logan,
 
 Hope you are doing well,
 

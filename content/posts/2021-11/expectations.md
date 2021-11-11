@@ -1,14 +1,14 @@
 +++
-title = "Relentless follow-through"
+title = "Relentless follow-through in Support"
 tags = [
     "support",
-    "best practices"
+    "bestpractices"
 ]
 date = "2021-11-08"
 toc = true
 +++
 
-Way back in April 2020 I wrote an article called [Written communication for support](../2020-04/written-communication-for-support.md) which covered some high level best practices around setting, managing, and resetting expectations. Think of this as a spiritual successor to that article, as we're going to talk about the other side of the coin - relentless follow-through.
+Way back in April 2020 I wrote an article called [Written communication for support](../../2020-04/written-communication-for-support/) which covered some high level best practices around setting, managing, and resetting expectations. Think of this as a spiritual successor to that article, as we're going to talk about the other side of the coin - relentless follow-through.
 
 To put "relentless follow-through" in more direct terms, I want to discuss some best practices around timeliness of responses _even when there's no news_, internal follow-up and expectation setting, and some options for collaboration (depending on the size/maturity of your business).
 

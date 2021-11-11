@@ -6,18 +6,48 @@
 		<generator>Hugo -- gohugo.io</generator>
 		<language>en-us</language>
 		<copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright>
-		<lastBuildDate>Mon, 08 Nov 2021 00:00:00 +0000</lastBuildDate>
+		<lastBuildDate>Thu, 11 Nov 2021 00:00:00 +0000</lastBuildDate>
 		<atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
 		
 		<item>
-			<title>Relentless follow-through</title>
+			<title>I still use Arch, btw</title>
+			<link>https://maclarel.github.io/posts/2021-11/still_use_arch/</link>
+			<pubDate>Thu, 11 Nov 2021 00:00:00 +0000</pubDate>
+			
+			<guid>https://maclarel.github.io/posts/2021-11/still_use_arch/</guid>
+			<description>Yep, the meme lives on. Still getting by with Arch as a daily driver. Still running it through VirtualBox.
+What&amp;rsquo;s great? Full control, and amazingly lightweight. Booted, and with my WM (i3) running, I&amp;rsquo;m measuring &amp;lt; 300MB of RAM usage and virtually zero CPU/disk usage. Windows or Mac OS sitting idle&amp;hellip; yeah, not comparable. Itg&amp;rsquo;s very refreshing having full control over just about every aspect of what I want.
+I&amp;rsquo;m getting so used to using i3, with only extremly minor modifications to bindings, that I&amp;rsquo;ve actually updated a lot of my Amethyst bindings to align with i3 defaults.</description>
+			<content type="html"><![CDATA[<p>Yep, the meme lives on. Still getting by with Arch as a daily driver. Still running it through VirtualBox.</p>
+<h1 id="whats-great">What&rsquo;s great?</h1>
+<p>Full control, and amazingly lightweight. Booted, and with my WM (i3) running, I&rsquo;m measuring &lt; 300MB of RAM usage and virtually zero CPU/disk usage. Windows or Mac OS sitting idle&hellip; yeah, not comparable. Itg&rsquo;s very refreshing having full control over just about every aspect of what I want.</p>
+<p>I&rsquo;m getting so used to using i3, with only extremly minor modifications to bindings, that I&rsquo;ve actually updated a lot of my Amethyst bindings to align with i3 defaults. It&rsquo;s just plain intuitive. Similarly, having a WM that&rsquo;s heavily keyboard driven, combined with qutebrowser and/or the Vimium extension in other browsers, makes it so that my hands rarely need to leave my keyboard. Obviously there are still some reasonably keyboard-unfriendly scenarios (<em>glances at Google sites</em>), but beyond that it&rsquo;s a pretty fantastic experience.</p>
+<p>I will note that I really haven&rsquo;t tried gaming in this at all. I haven&rsquo;t poked at GPU passthrough, and there&rsquo;s really no point in even trying with the vGPU that VirtualBox provides. I <em>did</em> get gzdoom running, but it was like a slideshow. Regardless, I&rsquo;ve got Wintendo for that.</p>
+<h1 id="whats-just-ok">What&rsquo;s just OK?</h1>
+<p>Now I&rsquo;m going to preface this by noting that I know I&rsquo;m not doing myself any favours by 1) using Arch, and 2) not using a major DE like Plasma.</p>
+<p>The only thing that is really, really painful coming from Windows/MacOS is the lack of a reliable clipboard system without having to get something setup. Yes, I know that I&rsquo;m getting <em>exactly</em> what I asked for, but I&rsquo;m still going to complain as it&rsquo;s really my only complaint &lt;_&lt;</p>
+<p>This is of course something I&rsquo;ll get around to addressing, but I had to bitch :P</p>
+<h1 id="what-sucks">What sucks?</h1>
+<p>VirtualBox has some annoying bugs, and &ldquo;features&rdquo;, but not in ways that actually break things. Some minor annoyuances include:</p>
+<ul>
+<li>Sometimes, but only sometimes, audio in my VM will get heavily distorted or &ldquo;poppy&rdquo;. The only workaround is to relaunch VirtualBox. Even restoring the VM from a snapshot doesn&rsquo;t reproduce it, so this feels like something with the hypervisor rather than the Guest.</li>
+<li>Despite being in full-screen mode, with no way to escape the guest short of ctrl-alt-f, there are still other key combinations that will escape the guest&hellip; Most notably among these chorgs is Super-L which of course is a default in my WM, but every f&amp;*king time I hit it to move a window around it locks my machine (via Windows). Need to figure that out still&hellip;</li>
+</ul>
+<h1 id="so-whats-next">So what&rsquo;s next?</h1>
+<p>Well, in my current work position I can&rsquo;t actually use Linux as my full time daily driver <em>however</em> I have already moved all of my personal work over to it and LOVE it. Significantly less friction than trying to work on projects through WSL, fewer annoyances than using MacOS and its menagerie of ancient/outdated packages and lack of customization, and my fingers would fall off trying to outline all the reasons that I prefer it over working directly in Windows.</p>
+<p>I guess this is all to say that despite running Windows under the covers, I have been, and will still be, spending more time in Linux than what&rsquo;s actually powering it. I&rsquo;m OK with that for now. It&rsquo;ll be interesting to see where Win 11 goes. I wouldn&rsquo;t mind taking the full jump over to Linux, but it will likely always be as a dual-boot as when I game I don&rsquo;t want to have to tinker.</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>Relentless follow-through in Support</title>
 			<link>https://maclarel.github.io/posts/2021-11/expectations/</link>
 			<pubDate>Mon, 08 Nov 2021 00:00:00 +0000</pubDate>
 			
 			<guid>https://maclarel.github.io/posts/2021-11/expectations/</guid>
 			<description>Way back in April 2020 I wrote an article called Written communication for support which covered some high level best practices around setting, managing, and resetting expectations. Think of this as a spiritual successor to that article, as we&amp;rsquo;re going to talk about the other side of the coin - relentless follow-through.
 To put &amp;ldquo;relentless follow-through&amp;rdquo; in more direct terms, I want to discuss some best practices around timeliness of responses even when there&amp;rsquo;s no news, internal follow-up and expectation setting, and some options for collaboration (depending on the size/maturity of your business).</description>
-			<content type="html"><![CDATA[<p>Way back in April 2020 I wrote an article called <a href="../2020-04/written-communication-for-support.md">Written communication for support</a> which covered some high level best practices around setting, managing, and resetting expectations. Think of this as a spiritual successor to that article, as we&rsquo;re going to talk about the other side of the coin - relentless follow-through.</p>
+			<content type="html"><![CDATA[<p>Way back in April 2020 I wrote an article called <a href="../../2020-04/written-communication-for-support/">Written communication for support</a> which covered some high level best practices around setting, managing, and resetting expectations. Think of this as a spiritual successor to that article, as we&rsquo;re going to talk about the other side of the coin - relentless follow-through.</p>
 <p>To put &ldquo;relentless follow-through&rdquo; in more direct terms, I want to discuss some best practices around timeliness of responses <em>even when there&rsquo;s no news</em>, internal follow-up and expectation setting, and some options for collaboration (depending on the size/maturity of your business).</p>
 <h1 id="relentless-sounds-like-a-strong-word">Relentless sounds like a strong word&hellip;</h1>
 <p>It is.</p>
@@ -31,7 +61,7 @@ To put &amp;ldquo;relentless follow-through&amp;rdquo; in more direct terms, I w
 <p><em>Your ability, as a support engineer, to keep your customers informed of the progress of investigations is paramount. In terms of customer satisfaction this is often more important than the actual time to resolution.</em></p>
 <h2 id="setting-realistic-expectations">Setting realistic expectations</h2>
 <p>Without rehashing too much content in the other article, the key point I want to get across here is that it doesn&rsquo;t help to bullshit people. I&rsquo;m not suggesting airing dirty laundry, or providing exhaustive detail, but if something flat out cannot be done it doesn&rsquo;t help to imply that it might be. Similarly, it&rsquo;s not overly helpful to imply that extremely minor (low visibility/low impact) bugs will get fixed quickly. There are some wording techniques to help get around these, and that will help convey this messaging in a more subtle fashion.</p>
-<pre><code>Sorry to hear that you're running into &lt;Issue X&gt;. We've been able to confirm this as a bug here, and are following up with our teams internally to work on a fix. I can't advise on when, we'll be able to deliver a fix for this problem, however I'd suggest keeping an eye on our release notes where a fix would be advertised.
+<pre tabindex="0"><code>Sorry to hear that you're running into &lt;Issue X&gt;. We've been able to confirm this as a bug here, and are following up with our teams internally to work on a fix. I can't advise on when, we'll be able to deliver a fix for this problem, however I'd suggest keeping an eye on our release notes where a fix would be advertised.
 
 In the mean time, we'd suggest the following workaround to help mitigate this issue in your usage:
 
@@ -52,7 +82,7 @@ Please let us know if you have any further questions!
 <p>Five key factors in, effectively, two lines of text.</p>
 <p>Building on this, you may also find yourself working in positions where you&rsquo;re working extremely closely with customers and have relationships <em>with them</em> that you can leverage. Often, issues will be exaggerated or at the very least not fully understood by the people reporting them. When you&rsquo;ve got this level of access, especially in a real-time fashion, it can be extremely helpful to spend a few minutes dissecting the actual problematic use-case to understand both if it&rsquo;s a realistic scenario, and whether or not it&rsquo;s something that&rsquo;s worth everyone&rsquo;s time to follow up on.</p>
 <p>As an example, you may receive a ticket like this:</p>
-<pre><code>Hi Support, 
+<pre tabindex="0"><code>Hi Support, 
 
 X part of the UI is broken in your product. This is blocking critical workflows on our side. See attached.
 </code></pre><p>A few helpful questions to ask to start (either in your own head, or to the customer):</p>
@@ -145,7 +175,7 @@ Despite that tenure on at least some of the hardware I&amp;rsquo;ve owned at any
 <li>500GB HDD</li>
 </ul>
 <p>I didn&rsquo;t want to waste time ever dual booting as there was simply no reason to for a machine that lives in my closet, so I split up the SSD as follows (leaving some extra space if I need to grow any partition later):</p>
-<pre><code>/ 30g
+<pre tabindex="0"><code>/ 30g
 /home 50g
 /data 130g
 /swap 4g
@@ -161,7 +191,7 @@ Despite that tenure on at least some of the hardware I&amp;rsquo;ve owned at any
 <li>I could only mount the NTFS partitions in read-only because the filesystems had apparently been corrupted by an earlier reboot during startup&hellip; Joy.</li>
 </ol>
 <p>Fortunately, I had backups of any data I needed, so no real issue there, but it did mean that I needed to rebuild these. It turns out creating a software RAID on Linux is pretty braindead as well:</p>
-<pre><code>parted -a optimal /dev/sda mklabel gpt
+<pre tabindex="0"><code>parted -a optimal /dev/sda mklabel gpt
 parted -a optimal /dev/sda mkpart primary btrfs 0% 100%
 parted -a optimal /dev/sda set 1 raid on
 parted -a optimal /dev/sda print
@@ -360,7 +390,7 @@ And perhaps most importantly, the whole layout is now more A E S T H E T I C&hel
 		</item>
 		
 		<item>
-			<title>Written communication for support</title>
+			<title>Written communication for Support</title>
 			<link>https://maclarel.github.io/posts/2020-04/written-communication-for-support/</link>
 			<pubDate>Sun, 12 Apr 2020 00:00:00 +0000</pubDate>
 			
@@ -373,7 +403,7 @@ While this will be by no means exhaustive, I want to go over two high-level conc
 <p>This may sound simple, and it is a straight forward concept, but it&rsquo;s all too oft ignored. We&rsquo;ll dive into some examples below as to how easy it is to really nail this and create a great customer experience.</p>
 <h2 id="setting-expectations">Setting Expectations</h2>
 <p>Have you ever received this email when working with a company?</p>
-<pre><code>Hi &lt;Name&gt;,
+<pre tabindex="0"><code>Hi &lt;Name&gt;,
 
 Thanks for reaching out for assistance!
 
@@ -394,7 +424,7 @@ Regards,
 <p>You may be reading this and think that the next steps are solely with the person troubleshooting the problem on the Support side, but you&rsquo;d be partially wrong. With no firm timeline established, the affected user who submitted the ticket also has to proactively reach out to Support if they need an update, since they don&rsquo;t know when they&rsquo;ll hear back. This makes for a poor customer experience since they&rsquo;re left wondering if they&rsquo;re going to hear back in an hour, a day, a week, or never.</p>
 <p>All to often I&rsquo;ll see this scenario play out, even with industry veterans, and almost without fail the very next entry in the ticket (regardless of timeline) is from the customer saying &ldquo;Any updates?&rdquo;.</p>
 <p>Let&rsquo;s do a small tweak, and outline the impact it has:</p>
-<pre><code>Hi &lt;Name&gt;,
+<pre tabindex="0"><code>Hi &lt;Name&gt;,
 
 Thanks for reaching out for assistance!
 
@@ -419,7 +449,7 @@ Regards,
 <p>In this case, the customer is left without any information as to the status of their request and feels ignored. It&rsquo;s a safe bet that (assuming they haven&rsquo;t given up) that ticket owner is going to come in the next morning and see &ldquo;Any updates?&rdquo; front and center on that ticket. The customer won&rsquo;t be happy.</p>
 <h3 id="scenario-2---the-ticket-is-updated-before-the-close-of-business-the-following-day-saying-that-theres-no-progress">Scenario 2 - The ticket is updated before the close of business the following day saying that there&rsquo;s no progress</h3>
 <p>Prior to the end of the following day, the ticket owner sends off this update:</p>
-<pre><code>Hi &lt;Name&gt;,
+<pre tabindex="0"><code>Hi &lt;Name&gt;,
 
 I just wanted to send you an update to note that I'm still looking into this here. I'll be in touch ASAP with next steps.
 
@@ -428,7 +458,7 @@ Regards,
 </code></pre><p>We&rsquo;re making progress with this, but still not perfect! Let&rsquo;s take a look at Scenario 3 for how we can reliable salvage this.</p>
 <h3 id="scenario-3---the-ticket-is-updated-and-expectations-are-reset">Scenario 3 - The ticket is updated, and expectations are reset</h3>
 <p>All we&rsquo;re going to do here is a minor tweak to the wording above. This will let us reset expectations with the customer and keep the next steps entirely on the Support side (save for a possible escalation).</p>
-<pre><code>Hi &lt;Name&gt;,
+<pre tabindex="0"><code>Hi &lt;Name&gt;,
 
 I just wanted to send you an update to note that I'm still looking into this here. I'll be looking into this first thing tomorrow morning and will provide you with an update by mid-day tomorrow.
 
@@ -453,11 +483,11 @@ Regards,
 <p>Clear and Concise Wording</p>
 <p>Time is valuable. If you can clearly, and politely, communicate a thought in two sentences instead of two paragraphs, do it. I&rsquo;ll provide examples of good, and bad, responses below. We&rsquo;ll strip the pleasantries since we&rsquo;re just focusing on content.</p>
 <h3 id="example-1">Example 1</h3>
-<pre><code>I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. This type of approach is quite inefficient with large data sets.
+<pre tabindex="0"><code>I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. This type of approach is quite inefficient with large data sets.
 
 You may want to consider loading values into a set for evaluation as this will likely perform much better.
 </code></pre><h3 id="example-2">Example 2</h3>
-<pre><code> I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. While a brute-force search is simple to implement, and will always find a solution if it exists, its cost is proportional to the number of candidate solutions – which in many practical problems tends to grow very quickly as the size of the problem increases 
+<pre tabindex="0"><code> I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. While a brute-force search is simple to implement, and will always find a solution if it exists, its cost is proportional to the number of candidate solutions – which in many practical problems tends to grow very quickly as the size of the problem increases 
 
 You may want to consider loading values into a set for evaluation as this will likely perform much better. A set will allow you to only store the required values until a duplicate is found, which will likely result in significantly smaller memory utilization.
 </code></pre><p>I&rsquo;ll note that both of these are completely valid responses that most customers would be happy to receive. In order to keep you, the reader of this article, paying attention I&rsquo;ve limited the verbosity that could have otherwise been included in <code>Example 2</code>.</p>
@@ -475,7 +505,7 @@ You may want to consider loading values into a set for evaluation as this will l
 <li>Proof-read your messages.</li>
 </ul>
 <p>I&rsquo;ll paraphrase a message I received recently which I think is a prime example of how not to write something.</p>
-<pre><code>Hi Logan,
+<pre tabindex="0"><code>Hi Logan,
 
 Hope you are doing well,
 

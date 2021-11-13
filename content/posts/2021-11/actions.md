@@ -8,4 +8,6 @@ date = "2021-11-13"
 toc = true
 +++
 
-This is a test - will flesh out as I get this working
+Well, that was easier than expected. Take a look at [peaceiris' `actions-hugo` repository](https://github.com/peaceiris/actions-hugo) for a workflow that can automate Hugo builds with all sorts of configurations.
+
+I was expecting this project to take about an hour of tinkering, but it wound up taking under 5 minutes. Hooray!

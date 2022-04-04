@@ -213,7 +213,7 @@ We can use this to get the `user.txt` flag as a starting point with `recyclops c
 c1ff88de...
 ```
 
-# Foothold & `rfoot`
+# Foothold & `root`
 
 We can add our own public key into `dwight`'s authorized keys with this and use that as a starting point:
 

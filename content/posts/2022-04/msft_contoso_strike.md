@@ -3,7 +3,7 @@ title = "Microsoft Strike CTF 2022 - Contoso Financial"
 tags = [
     "ctf"
 ]
-date = "2022-04-20"
+date = "2022-04-19"
 toc = true
 +++
 

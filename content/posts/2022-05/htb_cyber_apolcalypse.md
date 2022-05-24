@@ -17,9 +17,9 @@ I also had some split brain going into this as another CTF event was taking plac
 
 # The Challenges
 
-Unforutunately I can't track down the names of any of the challenges, so I'll need to work from memory here. From what I recall, I complete two of the `web` challenges, one of the `pwn` challenges, and one of the `misc` challenges.
+Unforutunately I can't track down the names of any of the challenges, so I'll need to work from memory here. From what I recall, I complete two of the `web` challenges, two of the `pwn` challenges, and one of the `misc` challenges.
 
-The `pwn` challenge, honestly, I think was broken. I was able to solve it by inputting random text of any length. I *think* it was meant to be a buffer overflow that required a specific length string, but something definitely went wrong.
+The first `pwn` challenge, honestly, I think was broken. I was able to solve it by inputting random text of any length. I *think* it was meant to be a buffer overflow that required a specific length string, but something definitely went wrong. The second challenge was a matter of finding the flag in the compiled code, obfuscated and pulling apart the executable in Ghidra was sufficient to expose the flag. I suspect there would be other, more graceful/efficient, approaches for that challenge since it was just a matter of the flag not being UTF-8 encoded, but it worked!
 
 The `misc` challenge was an interface that would accept file creation, and then compress those files. It didn't sanitize user-provided filenames, so it was possible to do LFI and pull in the flag quite directly (e.g. `Enter filename: ../../../../../../flag.txt`). Again, a bit of a freebie.
 

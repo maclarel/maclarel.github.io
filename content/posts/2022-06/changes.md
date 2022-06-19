@@ -16,11 +16,15 @@ I had moved into management with the hopes of it being a great way to advance my
 
 To start off with the (possibly obvious) point from the list above - it does _not_ scratch that same itch. Not even close. While handling logistical/people problems is indeed interesting and engaging, the politics that come with it are exhausting and not at all in an intriguing way. 
 
-Maybe this has to do with changes as the company scales, but the overall concept of needing to do something dumb just to prove it's dumb is downright exhausting. Add to that conflicting points of view, many of which are often _objectively_ wrong, and you get a recipe for extremely slow movement and low return on investment for projects undertaken. I suspect this is the same at most companies, to be clear, but it was far more drastic than I had anticipated going in.
+Maybe this has to do with changes as the company scales, but the overall concept of analyzing everything down to the most minute detail before implementation is downright exhausting. Add to that conflicting points of view, many of which are often _objectively_ wrong, and you get a recipe for extremely slow movement and low return on investment for projects undertaken. I suspect this is the same at most companies, to be clear, but it was far more drastic than I had anticipated going in.
 
 Insofar as career growth - it's a very slow move from senior manager to Director, especially considering that you're likely needing significant organization growth to ever facilitate it, or a Director leaving and you being the next most likely person to take the job. The other thing that comes with this, though, that I had not appreciated in advance is that the politics and disconnect from the actual jobs being done increase somewhat exponentially as you move up the ladder. It's no longer surprising to me that executives know next to nothing about day to day operations. Still depressing... just not surprising.
 
-Moving into management was absolutely a valuable experience, however, and I'd suggest folks who are curious do it at least once to see if it sticks. I don't think I'd be interested in doing it again though, at least not with the team sizes here (I've got 13 engineers as direct reports).
+Moving into management was absolutely a valuable experience, however, and I'd suggest folks who are curious do it at least once to see if it sticks. I don't think I'd be interested in doing it again though, at least not with the team sizes here. For reference, I've got 13 engineers as direct reports, I could see a team of ~5 being quite enjoyable.
+
+Despite all this, I've gotten a hell of a lot done over the past year. I've helped _double_ the size of the organization, I've found ways to continue to increase revenue while decreasing workload, I've promoted several folks and helped others move on to their dream jobs, and I've helped bring visibility to several areas that need significant long-term attention. It has been productive, and seeing the outcomes is very rewarding, but I can't help but feel that I could have done a lot of this from an IC role as well.
+
+*Leadership != Management*
 
 # Burnout 
 

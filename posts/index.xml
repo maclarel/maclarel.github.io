@@ -25,6 +25,37 @@ mark /OutputFile (%pipe%cat flag &gt;&gt; /app/application/static/petpets/flag.t
 </code></pre><p>Save that as <code>pwn.png</code> and upload it to the service.</p>
 <p>Voila, the flag is then accessible at <code>http://host:port/static/petpets/flag.txt</code>.</p>
 <p>GG, though I will say this one was a bit too easy.</p>
+]]></content></item><item><title>Bell HomeHub 4000 + Ubiquiti Unifi Dream Machine VPN</title><link>https://maclarel.github.io/posts/2022-09/bell_udm/</link><pubDate>Sat, 10 Sep 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-09/bell_udm/</guid><description>This article is a bit more to-the-point than most others I&amp;rsquo;ve written, and is mostly to serve as a reference point for others trying to configure a VPN server with Unifi products behind the Bell HomeHub 4000.
+The HomeHub 4000 DMZ works&amp;hellip; kinda The HomeHub 4000 doesn&amp;rsquo;t have Bridge mode, period. This leaves users with three options:
+Find a way to use PPPoE directly (possible, but janky) Use the &amp;ldquo;Advanced DMZ&amp;rdquo; feature on the HomeHub 4000 (Spoilers: It doesn&amp;rsquo;t work at all) Use the normal DMZ feature on the HomeHub 4000 and deal with double-NAT After several days of troubleshooting I opted for option 3 from the list above.</description><content type="html"><![CDATA[<p>This article is a bit more to-the-point than most others I&rsquo;ve written, and is mostly to serve as a reference point for others trying to configure a VPN server with Unifi products behind the Bell HomeHub 4000.</p>
+<h1 id="the-homehub-4000-dmz-works-kinda">The HomeHub 4000 DMZ works&hellip; kinda</h1>
+<p>The HomeHub 4000 doesn&rsquo;t have <code>Bridge mode</code>, period. This leaves users with three options:</p>
+<ol>
+<li>Find a way to use PPPoE directly (possible, but janky)</li>
+<li>Use the &ldquo;Advanced DMZ&rdquo; feature on the HomeHub 4000 (Spoilers: It doesn&rsquo;t work <em>at all</em>)</li>
+<li>Use the normal DMZ feature on the HomeHub 4000 and deal with double-NAT</li>
+</ol>
+<p>After several days of troubleshooting I opted for option 3 from the list above.</p>
+<ul>
+<li>The UDM doesn&rsquo;t have an SFP port, and I wasn&rsquo;t going to shell out for a media converter, so that removed option 1.</li>
+<li>Option 2 resulted in my UDM getting the Bell public IP as expected, but under no circumstances could it send traffic. I&rsquo;ve seen some other blog/forum posts noting that it can work if you add custom routes, but this feels so far off the supported/intended path that it&rsquo;s not worth the headache to troubleshoot if things go wrong.</li>
+<li>Option 3, at first, seemed to be totally broken, but wound up working fine&hellip;</li>
+</ul>
+<h1 id="the-udms-vpn-works-kinda">The UDM&rsquo;s VPN works&hellip; kinda</h1>
+<p>When I was using bridge mode on my old connection, I happily made use of the built-in VPN solution that the UDM (and UDM Pro) line offer. No port forwarding required, no drama, and easy to handle networking for VPN clients, as well as individual credential sets.</p>
+<p>Unfortuately for me, the Ubiquiti software <em>refuses to enable the VPN server if it detects that it&rsquo;s on a NAT&rsquo;d connection</em>. Why it does this is completely beyond me, but it will flat out refuse to work <em>despite allowing you to enable it anyway</em>.</p>
+<p>I spent <em>days</em> troubleshooting this, thinking that the problem was the HomeHub 4000&rsquo;s &ldquo;DMZ&rdquo;, but it was&rsquo;t. The Ubiquiti software just won&rsquo;t actually accept connections even if they originate from the same LAN (ruling out any firewall/NAT issues).</p>
+<p>Fortunately, the new <code>Teleport</code> feature does work, but that feels like more headache than it&rsquo;s worth <em>for my use case</em> and I don&rsquo;t want to be an early adopter. It&rsquo;s also not possible, currently, to customize the subnet that Teleport VPN clients land on, and they have no access to the rest of the network(s), making it completely useless to me as the whole point is to access my LAN resources while AFK.</p>
+<h1 id="wireguard">Wireguard</h1>
+<p>After wrestling with Teleport for a while, I realized I could just run my own Wireguard server. I have a finite number of devices I want to use, and having a config file/QR code to scan is much simpler than managing credentials, or needing specific one-time-use URLs, etc&hellip; I just want to get connected.</p>
+<p>Docker and Wireguard to the rescue! Within 30 minute I was up and running - just needed to place my UDM in the &ldquo;DMZ&rdquo; of the HomeHub 4000&rsquo;s config, port forward to the configured UDP port for Wireguard&rsquo;s container on my server, and it all &ldquo;just works&rdquo;!</p>
+<h1 id="resources">Resources</h1>
+<p>If you&rsquo;re interested in playing around with Wireguard, the config is <a href="https://github.com/maclarel/homelab/blob/master/wireguard/docker-compose.yml">this easy</a>. I used parts from several tutorials beyond that, but <a href="https://codeopolis.com/posts/installing-wireguard-in-docker/">this one</a> is probably the most succinct.</p>
+<p>Just run <code>docker logs</code> for your <code>wireguard</code> container and you&rsquo;ll get the QR codes for easy mobile device configuration, or hope to your configured <code>config</code> directory to pull out the <code>peer.conf</code> file(s) to use with your other systems.</p>
+<p>These are both then trivial to use with the official Wireguard apps available for non-Linux platforms, or of course with Wireguard proper if you&rsquo;re connecting from a Linux box.</p>
+<h1 id="back-to-normal">Back to normal</h1>
+<p>After a few frustrating weeks, I&rsquo;m now actually working with a <em>better</em> VPN config than I had before. No hassles with it, instantaneous connection, and great bandwidth speed compared to OpenVPN.</p>
+<p>Hopefully Bell pushes a firmware update to the HomeHub 4000 with bridge mode some day, but I&rsquo;m not holding my breath.</p>
 ]]></content></item><item><title>Karabiner is a game changer</title><link>https://maclarel.github.io/posts/2022-09/karabiner/</link><pubDate>Sun, 04 Sep 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-09/karabiner/</guid><description>What is Karabiner and why? Karabiner Elements is an open source MacOS application that can be used to intercept and modify any keystroke, combination, etc&amp;hellip; on your machine and change it to do damn near anything you want. If you follow my blog or know me, you&amp;rsquo;ll know that I&amp;rsquo;m a big fan of custom keyboards and the flexibility that they allow by way of QMK or similar firmware - Karabiner recreates a lot of that functionality at the software level.</description><content type="html"><![CDATA[<h1 id="what-is-karabiner-and-why">What is Karabiner and why?</h1>
 <p><a href="https://github.com/pqrs-org/Karabiner-Elements">Karabiner Elements</a> is an open source MacOS application that can be used to intercept and modify any keystroke, combination, etc&hellip; on your machine and change it to do damn near anything you want. If you follow my blog or know me, you&rsquo;ll know that I&rsquo;m a big fan of custom keyboards and the flexibility that they allow by way of QMK or similar firmware - Karabiner recreates a lot of that <em>functionality</em> at the software level.</p>
 <h1 id="whats-the-feature-set">What&rsquo;s the feature set?</h1>

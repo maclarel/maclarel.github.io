@@ -65,7 +65,7 @@ publishDir = "./docs/"
     url = "https://github.com/maclarel"
 
   [[params.social]]
-    name = "twitter"
+    name = "mastodon"
     url = "https://infosec.exchange/@gill3tt3"
 
 [menu]

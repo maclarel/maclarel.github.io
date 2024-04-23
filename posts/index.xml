@@ -1,4 +1,71 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://www.maclaren.dev/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Sat, 24 Feb 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://www.maclaren.dev/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Is Support actually a dead-end?</title><link>https://www.maclaren.dev/posts/2024-02/deadend/</link><pubDate>Sat, 24 Feb 2024 00:00:00 +0000</pubDate><guid>https://www.maclaren.dev/posts/2024-02/deadend/</guid><description>Career laddering in Support I saw a really interesting post on LinkedIn the other day from Brian Levine talking about how support is a &amp;ldquo;dead-end&amp;rdquo; job.
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://www.maclaren.dev/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Tue, 09 Apr 2024 00:00:00 +0000</lastBuildDate><atom:link href="https://www.maclaren.dev/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Cooking up some more CVEs</title><link>https://www.maclaren.dev/posts/2024-04/mealie/</link><pubDate>Tue, 09 Apr 2024 00:00:00 +0000</pubDate><guid>https://www.maclaren.dev/posts/2024-04/mealie/</guid><description>Unlike state secrets, I don&amp;rsquo;t want my brisket recipes to wind up in a Florida bathroom As a follow up to the last time I wrote about CVEs, I&amp;rsquo;ve amassed a few more to my name:
+CVE-2024-29191 CVE-2024-29192 CVE-2024-29193 CVE-2024-31991 CVE-2024-31992 CVE-2024-31993 CVE-2024-31994 The first three of these are related to go2rtc and are follow-ups from the earlier investigation done with Frigate. These were found in collaboration with Jorge Rosillo from GitHub Security Lab, and I recommend taking a read through the advisory article for details on these.</description><content type="html"><![CDATA[<h1 id="unlike-state-secrets-i-dont-want-my-brisket-recipes-to-wind-up-in-a-florida-bathroom">Unlike state secrets, I don&rsquo;t want my brisket recipes to wind up in a Florida bathroom</h1>
+<p>As a follow up to <a href="https://www.maclaren.dev/posts/2023-12/2023/#i-found-some-vulnerabilities-and-got-some-cves-credited-to-me">the last time I wrote about CVEs</a>, I&rsquo;ve amassed a few more to my name:</p>
+<ul>
+<li>CVE-2024-29191</li>
+<li>CVE-2024-29192</li>
+<li>CVE-2024-29193</li>
+<li>CVE-2024-31991</li>
+<li>CVE-2024-31992</li>
+<li>CVE-2024-31993</li>
+<li>CVE-2024-31994</li>
+</ul>
+<p>The first three of these are related to <code>go2rtc</code> and are follow-ups from the earlier investigation done with <a href="https://github.blog/2023-12-13-securing-our-home-labs-frigate-code-review/">Frigate</a>. These were found in collaboration with <a href="https://github.com/jorgectf">Jorge Rosillo</a> from GitHub Security Lab, and I recommend taking a read through <a href="https://securitylab.github.com/advisories/GHSL-2023-205_GHSL-2023-207_go2rtc/">the advisory article</a> for details on these.</p>
+<p>In this article, I&rsquo;ll focus on the findings related to <a href="https://mealie.io/">Mealie</a>. While these are lower severity than those that I/we found in Frigate &amp; go2rtc, they ecompass Denial of Service (DoS), Server Side Request Forgery (SSRF), and local file inclusion.</p>
+<h1 id="what-did-i-find">What did I find?</h1>
+<p>I want to start off by reassuring the Mealie users out there that the following mitigations are/were feasible to mitigate these findings regardless of the version of Mealie in use:</p>
+<ul>
+<li>If your instance is only exposed to your intranet, you&rsquo;re already reasonably secure</li>
+<li>If your instance is exposed to the internet, but segregated from your internal network, the SSRF findings do not affect you</li>
+<li>If neither of the above are the case, but you disabled signups <em>and</em> you disabled the default account (enabled by default), you&rsquo;re reasonably secure</li>
+</ul>
+<p>If you&rsquo;re not interested in the details, these were mostly addressed in <a href="https://github.com/mealie-recipes/mealie/pull/3368">this Pull Request</a> and version 1.4.0 (and above) have far more secure defaults than in the past.</p>
+<p>The very quick summary of these findings is that a low-privilege user (i.e. generic user account) with access to Mealie is able to:</p>
+<ul>
+<li>Map and retrieve content from any webserver on any network Mealie has access to (LFI/SSRF - <a href="https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:N/A:N/E:F/RL:O/RC:C/CR:L/IR:X/AR:X/MAV:N/MAC:L/MPR:L/MUI:N/MS:C/MC:H/MI:N/MA:N&amp;version=3.1">CVSS 5.0</a>)
+<ul>
+<li>Note: Extraction of content retrieval required administrator access or Debug mode.</li>
+</ul>
+</li>
+<li>Perform DoS attacks against the Mealie server (DoS - <a href="https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:N/AC:L/PR:L/UI:N/S:C/C:N/I:N/A:L/E:F/RL:O/RC:C/CR:X/IR:X/AR:L/MAV:N/MAC:L/MPR:L/MUI:N/MS:C/MC:N/MI:N/MA:L&amp;version=3.1">CVSS 3.8</a>)</li>
+<li>Perform DoS attacks against remote web servers due to lack of rate limiting (DoS - <a href="https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:N/AC:L/PR:L/UI:N/S:C/C:N/I:N/A:H/E:F/RL:O/RC:C/CR:X/IR:X/AR:M/MAV:N/MAC:L/MPR:L/MUI:N/MS:C/MC:N/MI:N/MA:L&amp;version=3.1">CVSS 4.7</a>)</li>
+</ul>
+<p>Note that the DoS vectors here do not permit any sort of amplication, and are purely volumetric in nature. Without critical mass of compromised Mealie servers, the impact is primarily focused on the Mealie servers themselves.</p>
+<h1 id="timeline">Timeline</h1>
+<ul>
+<li>Decemeber 15, 2023 - Findings are privately disclosed to Mealie maintainers <a href="https://github.com/mealie-recipes/mealie?tab=security-ov-file#reporting-a-vulnerability">as per their instructions</a> with a noted disclosure date of March 14th, 2024.</li>
+<li>January 30, 2024 - An update is requested from the Mealie team.</li>
+<li>March 14, 2024 - An <a href="https://github.com/mealie-recipes/mealie/issues/3315">issue</a> is opened in the <a href="https://github.com/mealie-recipes/mealie">Mealie repository</a> requesting an update to avoid disclosure of actively exploitable vulnerabilities.</li>
+<li>March 15, 2024 - Mealie maintainers respond and request extension of disclosure timeline to March 25th.</li>
+<li>March 25, 2024 - An update is requested from the Mealie team.</li>
+<li>April 3rd, 2024 - Pull Request <a href="https://github.com/mealie-recipes/mealie/pull/3368">3368</a> is merged, and version 1.4.0 is released containing fixes.</li>
+<li>April 9th,  2024 - Public disclosure of these findings &amp; CVE assignment.</li>
+</ul>
+<h1 id="what-should-i-do-if-im-running-mealie">What should I do if I&rsquo;m running Mealie?</h1>
+<ul>
+<li>Put it behind an authentication proxy and/or VPN - do not have it publicly exposed to the internet.
+<ul>
+<li><a href="https://docs.mealie.io/documentation/getting-started/installation/security/">Recommendations from the Mealie team</a></li>
+</ul>
+</li>
+<li>Restrict network access to your internal network. While the latest updates restrict the ability to interact with RFC1918 IP addresses, DNS rebinding is <em>likely</em> still viable.</li>
+<li>Disable signups and the default account unless you have a very good reason to keep these enabled.</li>
+<li>Do <em>not</em> run in a <a href="https://docs.mealie.io/contributors/developers-guide/starting-dev-server/">development setting</a> for normal usage.</li>
+<li>Update to version 1.4.0 or above.</li>
+</ul>
+<h1 id="what-are-the-details">What are the details?</h1>
+<p>Rather than reposting a repost of my original reports, you can read through it all on the <a href="https://securitylab.github.com/advisories/GHSL-2023-225_GHSL-2023-226_Mealie/">GitHub Security Lab Advisories site</a>.</p>
+<h1 id="any-themes-in-the-findings">Any themes in the findings?</h1>
+<p>The very quick summary here is that if you&rsquo;re going to allow users to interact with external resources, you need to be very careful about what you allow them to do. In the case of Mealie, the ability to interact with external resources was a feature, but the lack of rate limiting and the ability to interact with internal resources opened this up to be used as not only a DoS vector (granted, one with limited impact) but also allowed an attacker to map out internal resources.</p>
+<p>While neither of these are all that scary compared to some other things that I&rsquo;ve found (like those in <a href="https://securitylab.github.com/advisories/GHSL-2023-190_Frigate/">Frigate</a>, they&rsquo;re all tools that can be used as part of a larger attack. In this case, the SSRF could be used to map out internal resources and the DoS could be used against those resources, Mealie itself, or against an external target.</p>
+<p>A lot of folks with homelabs, myself included, are a bit lazy about resource limits on things like docker containers. This is a good reminder that we should be a bit more careful about what we allow our containers to do and where they can connect. A Mealie instance with a multi-gigabit connection and (far too many) CPU cores could be used to amplify a DoS attack against a target, and that&rsquo;s not something that we want to be a part of.</p>
+<p>When you&rsquo;re self-hosting any service, be conscious of who has access to it, <em>how it can be accessed</em> (just because you have auth turned on doesn&rsquo;t mean there isn&rsquo;t a bypass), and what <em>that service itself</em> can access. Network segregation is extremely important <em>especially</em> if you&rsquo;re exposing services publicly, even behind a proxy.</p>
+<h1 id="closing-thoughts">Closing thoughts</h1>
+<p>I&rsquo;ve got two takeaways from this experience.</p>
+<p>First off, kudos to the Mealie maintainers for acknowledging and addressing these findings despite being lower in severity. There have been some notable communication gaps, but when we have been able to connect they&rsquo;ve been great to work with. You can find more details about their thoughts <a href="https://github.com/mealie-recipes/mealie/releases/tag/v1.4.0">in the release notes for version 1.4.0</a>. I&rsquo;m supportive of the approach they&rsquo;ve taken to address these - through preventing access to RFC 1918 addresses, and documenting recommendations for rate limiting. These aren&rsquo;t durable mitigations from a product perspective (external DNS/DNS rebinding can bypass the IP restrictions) but when paired with availability of information, more secure defaults, and deployment recommendations I believe these are sufficient.</p>
+<p>Secondly, I think the timelines and communication failures around these findings really emphasize the value of formal reporting mechanisms for open source projects like GitLab&rsquo;s <a href="https://docs.gitlab.com/ee/user/project/issues/confidential_issues.html">Confidential Issues</a> and GitHub&rsquo;s <a href="https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability">Private Vulnerability Reports</a>. Email is archaic, and incredibly easy to miss. It&rsquo;s telling that the first response I received from an otherwise active team of maintainers only came after I opened an issue in the GitHub repository asking for an update.</p>
+<p>To be extremely clear, the above statement is not attempting to speak negatively of Mealie&rsquo;s maintainers. The intent is to demonstrate the unreliability of email for anything requiring attention. As a maintainer, please make use of the tools freely available to you&hellip; and feel free to reach out to me if you want a run down on how to use GitHub&rsquo;s Private Vulnerability Reports!</p>
+]]></content></item><item><title>Is Support actually a dead-end?</title><link>https://www.maclaren.dev/posts/2024-02/deadend/</link><pubDate>Sat, 24 Feb 2024 00:00:00 +0000</pubDate><guid>https://www.maclaren.dev/posts/2024-02/deadend/</guid><description>Career laddering in Support I saw a really interesting post on LinkedIn the other day from Brian Levine talking about how support is a &amp;ldquo;dead-end&amp;rdquo; job.
 The premise of his article was effectively that in many companies Support is often seen as entry level, with no possible advancement in the organization outside of management. While his proposal discusses laddering up to &amp;ldquo;Senior&amp;rdquo; positions, I find that this may be aiming too low when looking at deeply technical support work like with many &amp;ldquo;enterprise&amp;rdquo; products.</description><content type="html"><![CDATA[<h1 id="career-laddering-in-support">Career laddering in Support</h1>
 <p>I saw a <a href="https://www.linkedin.com/posts/brian-a-levine_support-is-a-dead-end-job-activity-7163609177074851840-fdcn">really interesting post on LinkedIn</a> the other day from Brian Levine talking about how support is a &ldquo;dead-end&rdquo; job.</p>
 <p>The premise of his article was effectively that in many companies Support is often seen as entry level, with no possible advancement in the organization outside of management. While his proposal discusses laddering up to &ldquo;Senior&rdquo; positions, I find that this may be aiming too low when looking at deeply technical support work like with many &ldquo;enterprise&rdquo; products.</p>

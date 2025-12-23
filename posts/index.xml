@@ -1,4 +1,67 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://www.maclaren.dev/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Tue, 20 May 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://www.maclaren.dev/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>NorthSec 2025, or How I Learned to Steal a Cruise Ship</title><link>https://www.maclaren.dev/posts/2025-05/nsec2025/</link><pubDate>Tue, 20 May 2025 00:00:00 +0000</pubDate><guid>https://www.maclaren.dev/posts/2025-05/nsec2025/</guid><description>Overview Another year, and another NorthSec in the books.
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://www.maclaren.dev/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Tue, 23 Dec 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://www.maclaren.dev/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Troubleshooting a small boot partition</title><link>https://www.maclaren.dev/posts/2025-12/bootful/</link><pubDate>Tue, 23 Dec 2025 00:00:00 +0000</pubDate><guid>https://www.maclaren.dev/posts/2025-12/bootful/</guid><description>This one will be quick Recently stumbled across an interesting problem&amp;hellip;
+Against recommendations I have multiple long-lived Kali Linux VMs. I use these for CTFs as well as general security research and my day job, so having them always available and set up the way I want is quite valuable to me. This, of course, means I also need to keep them updated.
+As I update these VMs I of course get updated packages, but I also get updated kernels.</description><content type="html"><![CDATA[<h1 id="this-one-will-be-quick">This one will be quick</h1>
+<p>Recently stumbled across an interesting problem&hellip;</p>
+<p>Against recommendations I have multiple long-lived Kali Linux VMs. I use these for CTFs as well as general security research and my day job, so having them always available and set up the way I want is quite valuable to me. This, of course, means I also need to keep them updated.</p>
+<p>As I update these VMs I of course get updated packages, but I also get updated kernels. While the compiled kernel, for Debian/Kali, is quite small with the total package coming in around 250MB, Kali still defaults the installations to a 500MB boot partition which of course means that it&rsquo;s a stretch to have more than a single kernel version installed for rollback purposes (or even completing single updates).</p>
+<p>Since I screw around with these machines a lot, it&rsquo;s important that I also be able to recover from problematic updates, so having current-1 kernels available for rollback is super helpful and has saved my bacon more than once. Yes, I also back up the VMs and take snapshots where possible, however it&rsquo;s much easier to just run a few commands than to completely reset the state of the machine.</p>
+<h1 id="the-problem">The problem</h1>
+<p>So it turns out that when running an update via <code>apt</code> that will drop a new kernel version to /boot, it won&rsquo;t actually check that there&rsquo;s enough space for the output of <code>initramfs</code>, and as a result you can wind up with a successfully installed kernel but having 0 bytes free on <code>/boot</code>. Your bootloader will have been updated to point to the newer version, but if you attempt to boot to it you&rsquo;ll just get kernel panics.</p>
+<h1 id="the-fix">The fix</h1>
+<p>This has been <a href="https://www.reddit.com/r/Ubuntu/comments/163pd22/guide_removing_old_unused_kernels/">posted all over the internet</a>, but here it is again since it&rsquo;s useful dammit!</p>
+<pre><code>uname -r # Get your current (presumably working) version
+dpkg -l | tail -n +6 | grep -E 'linux-image-[0-9]+' # List all installed kernels
+sudo apt purge linux-image-VERSION_TO_REMOVE # Remove specific version(s)
+sudo apt autoremove &amp;&amp; sudo apt autoclean # Cleanup
+</code></pre><p>For a more manual version of this, you can also do some surgery on <code>/boot</code>. Do this at your own peril - you can cause some serious problems. Replace <code>VERSION_GOES_HERE</code> with the actual version (e.g. <code>6.12.33+kali-amd64</code>):</p>
+<pre><code>ls -la /boot # See what all is in /boot
+sudo rm -f /boot/initrd.img-VERSION_GOES_HERE
+sudo rm -f /boot/vmlinuz-VERSION_GOES_HERE
+sudo rm -f /boot/System.map-VERSION_GOES_HERE
+sudo rm -f /boot/config-VERSION_GOES_HERE
+sudo dpkg --configure -a
+sudo apt purge linux-image-VERSION_GOES_HERE
+sudo apt purge linux-headers-VERSION_GOES_HERE
+sudo update-initramfs -u -k all
+sudo update-grub
+</code></pre><p><strong>Don&rsquo;t do this unless you know what those commands mean</strong>. Do some research before bricking your system and complaining about this blog post :P</p>
+<h1 id="and-automation-to-help-prevent-the-problem">And automation to help prevent the problem</h1>
+<p>Of course now that this is fixed I don&rsquo;t want it to happen again - specifically I want to only ever keep one single previous kernel version available for rollback rather than the (default?) unlimited number that will otherwise appear.</p>
+<p>We can do this with an <code>apt</code> config file edit, however why do that manually across systems when we could use Ansible instead. So, <a href="https://github.com/maclarel/ansible_playbooks/blob/master/vm_manage/playbooks/kernel_upgrade_retention.yml">here&rsquo;s a playbook for it</a>:</p>
+<pre><code>
+---
+- name: Enforce unattended-upgrades kernel retention policy
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Ensure unattended-upgrades is installed
+      apt:
+        name: unattended-upgrades
+        state: present
+        update_cache: true
+
+    - name: Enforce unattended-upgrades cleanup policy
+      copy:
+        dest: /etc/apt/apt.conf.d/50unattended-upgrades
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          // Managed by Ansible
+          Unattended-Upgrade::Remove-Unused-Kernel-Packages &quot;true&quot;;
+          Unattended-Upgrade::Remove-New-Unused-Dependencies &quot;true&quot;;
+          Unattended-Upgrade::Remove-Unused-Dependencies &quot;true&quot;;
+          Unattended-Upgrade::MinimalSteps &quot;true&quot;;
+
+    - name: Ensure unattended-upgrades service is enabled and running
+      systemd:
+        name: unattended-upgrades
+        enabled: true
+        state: started
+</code></pre><p>Good luck troubleshooting if this happens to you!</p>
+]]></content></item><item><title>NorthSec 2025, or How I Learned to Steal a Cruise Ship</title><link>https://www.maclaren.dev/posts/2025-05/nsec2025/</link><pubDate>Tue, 20 May 2025 00:00:00 +0000</pubDate><guid>https://www.maclaren.dev/posts/2025-05/nsec2025/</guid><description>Overview Another year, and another NorthSec in the books.
 Like every year prior, I continue to strongly recommend this conference to anyone and everyone in the cybersecurity space. NorthSec (nSec) is somewhat unique, in my experience, in that it caters to nearly all skill levels and strives to make itself as accessible to students (with reduced prices, too!) as to industry veterans.
 Beyond the accessibility, for an event with two stages they manage every year to have a huge variety of topics covered.</description><content type="html"><![CDATA[<h1 id="overview">Overview</h1>
 <p>Another year, and another NorthSec in the books.</p>

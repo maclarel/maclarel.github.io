@@ -1,4 +1,33 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://www.maclaren.dev/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Tue, 23 Dec 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://www.maclaren.dev/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Obligatory look back</title><link>https://www.maclaren.dev/posts/2025-12/2025/</link><pubDate>Tue, 23 Dec 2025 00:00:00 +0000</pubDate><guid>https://www.maclaren.dev/posts/2025-12/2025/</guid><description>Here we are&amp;hellip; &amp;hellip;at the end of 2025. Another year, another obligatory blog post looking back on a year where I&amp;rsquo;ve barely posted anything but a lot has happened.
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Posts on Logan MacLaren</title><link>https://www.maclaren.dev/posts/</link><description>Recent content in Posts on Logan MacLaren</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><copyright>This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License.</copyright><lastBuildDate>Sat, 27 Dec 2025 00:00:00 +0000</lastBuildDate><atom:link href="https://www.maclaren.dev/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>Listening to music from the command line like god intended</title><link>https://www.maclaren.dev/posts/2025-12/cmus/</link><pubDate>Sat, 27 Dec 2025 00:00:00 +0000</pubDate><guid>https://www.maclaren.dev/posts/2025-12/cmus/</guid><description>Really dude? Yeah.
+y tho I got rid of Spotify. I&amp;rsquo;d been a subscriber for ages, and being completely honest the value is there for consumers, but they&amp;rsquo;ve got some seriously shady business practices and really aren&amp;rsquo;t of value to musicians beyond discoverability. I&amp;rsquo;d also realized that the more I thought about my interaction with Spotify the more music became a backing track to something else rather than the actual focus.</description><content type="html"><![CDATA[<h1 id="really-dude">Really dude?</h1>
+<p>Yeah.</p>
+<h1 id="y-tho">y tho</h1>
+<p>I got rid of Spotify. I&rsquo;d been a subscriber for ages, and being completely honest the value is there for <em>consumers</em>, but they&rsquo;ve got some seriously shady business practices and really aren&rsquo;t of value to musicians beyond discoverability. I&rsquo;d also realized that the more I thought about my interaction with Spotify the more music became a backing track to something else rather than the actual focus.</p>
+<p>There&rsquo;s totally a place for ambient music, and I have stuff like that on most of the day, however I don&rsquo;t need to be <em>paying</em> for that.</p>
+<h1 id="so-what-now">So what now?</h1>
+<p>Well I already have a massive collection of (primarily) legally obtained music through rips of a decent CD collection or digital downloads accompanying albums I own, so I figured I&rsquo;d do the double-whammy&hellip;</p>
+<ul>
+<li>Be more intentional about what I listen to</li>
+<li>Remove the convenience that is a plague on enjoyment</li>
+</ul>
+<h1 id="from-the-command-line">From the command line?</h1>
+<p>Yeah. I took a look at multiple GUI-focused options on Linux (Strawberry, VLC, mpv, etc&hellip;) and nothing really clicked. I want something simple - like foobar2000 or WinAmp, but also not unimaginably hideous like most Qt apps are. That pushed me over to command line stuff.</p>
+<p>I started out by looking at mpd + rmpc, but it&rsquo;s more complicated than it&rsquo;s worth for my setup. I just wanted something that would play my music and offer the most basic of controls.</p>
+<p>I started out looking at <a href="https://moc.daper.net/">moc</a> but it was obnoxious to get working, so working through <a href="https://wiki.archlinux.org/title/List_of_applications/Multimedia#Audio">the list of options in the Arch Wiki</a> I decided to look at <a href="https://cmus.github.io/">cmus</a> and it has been a match made in heaven.</p>
+<h1 id="why-cmus">Why cmus?</h1>
+<ul>
+<li>Simple interface</li>
+<li>Vim bindings</li>
+<li>Great user documentation</li>
+<li>Incredibly lightweight</li>
+<li>Works with playerctl with no additional futzing about</li>
+</ul>
+<p>10/10 recommended.</p>
+<h1 id="what-about-podcasts-and-stuff">What about podcasts and stuff?</h1>
+<p>This was actually a bit of a concern at first, as I listen to a lot of work-related podcasts on Spotify. It turns out that they&rsquo;re virtually all available through other mediums. To that end, I&rsquo;m trying out <a href="https://podcastrepublic.net/">Podcast Republic</a> on my mobile devices. If that doesn&rsquo;t work, YouTube or PocketCasts are probably the next best options.</p>
+<h1 id="ok-now-the-bad">Ok, now the bad</h1>
+<p>The one thing I&rsquo;m really going to miss is the discoverability of new bands. Spotify has absolutely nailed this in a way that I haven&rsquo;t seen repeated elsewhere. I wouldn&rsquo;t have found a majority of the bands I have in heavy rotation if it weren&rsquo;t for stumbling across them in Spotify mixes or recommendations. I&rsquo;m optimistic that I&rsquo;ll be able to find bands organically both through local concert scenes and being more mindful about what I&rsquo;m listening to, but we&rsquo;ll see&hellip; If this is a deal breaker I might have to hold my nose and resubscribe.</p>
+]]></content></item><item><title>Obligatory look back</title><link>https://www.maclaren.dev/posts/2025-12/2025/</link><pubDate>Tue, 23 Dec 2025 00:00:00 +0000</pubDate><guid>https://www.maclaren.dev/posts/2025-12/2025/</guid><description>Here we are&amp;hellip; &amp;hellip;at the end of 2025. Another year, another obligatory blog post looking back on a year where I&amp;rsquo;ve barely posted anything but a lot has happened.
 Job changes While late 2024 saw my formal move to offensive security on a career front, 2025 really solidified it. I&amp;rsquo;ve moved over to Huntress to lead up their internal Offensive Security team.
 This is an awesome opportunity to join a very hot company, somewhat detach myself from the AI bubble, and really expand my career beyond just doing and into building.</description><content type="html"><![CDATA[<h1 id="here-we-are">Here we are&hellip;</h1>
 <p>&hellip;at the end of 2025. Another year, another obligatory blog post looking back on a year where I&rsquo;ve barely posted anything but a lot has happened.</p>

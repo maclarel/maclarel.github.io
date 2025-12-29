@@ -47,6 +47,8 @@ This was actually a bit of a concern at first, as I listen to a lot of work-rela
 
 For music on-the-go I'm using [Musicolet](https://musicolet.app/) on Android, which looks to have a similar design ethos - dead simple, just local media playback. Of course, there's also YouTube/YouTube Music if I need to stream something I don't have. TBD how this is going to work with Android Auto but we'll find out soon!
 
+Update: It is horrific with Android Auto. Multiple seconds of lag with each action. I may nerd to look at other options... 
+
 # Ok, now the bad
 
 The one thing I'm really going to miss is the discoverability of new bands. Spotify has absolutely nailed this in a way that I haven't seen repeated elsewhere. I wouldn't have found a majority of the bands I have in heavy rotation if it weren't for stumbling across them in Spotify mixes or recommendations. I'm optimistic that I'll be able to find bands organically both through local concert scenes and being more mindful about what I'm listening to, but we'll see... If this is a deal breaker I might have to hold my nose and resubscribe.

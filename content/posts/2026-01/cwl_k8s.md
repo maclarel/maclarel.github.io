@@ -37,4 +37,4 @@ I'm not sure if I'd pay for another course from CWL, but I'm not upset that I pa
 
 [Proof](https://labs.cyberwarfare.live/credential/achievement/695eb383823d7631cc46d378)
 
-Oh, and a fun thin that made me facepalm - the K8s pods for the exam are long-lived and haven't been rotated in _months_. If you poke around on some of the pods you might find some interesting stuff left behind by previous students... *sigh*
+Oh, and a fun thing that made me facepalm - the K8s pods for the exam are long-lived and haven't been rotated in _months_. If you poke around on some of the pods you might find some interesting stuff left behind by previous students... *sigh*

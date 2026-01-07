@@ -25,9 +25,9 @@ My only other gripe with the course content is that (all of?) the videos were sh
 
 # The exam
 
-The exam is a bit of a joke, to be honest. It took me under an hour to complete from start to finish. It's CTF style and there's strong hinting as to where the flags are, though it's up to you to figure out how to retrieve them.
+The exam is a bit of a joke, to be honest. It took me under an hour to complete from start to finish. It's CTF style and there's strong hinting as to where the flags are, though it's up to you to figure out how to retrieve them. There's one very fun lateral movement technique that you need to do, but otherwise it's quite straightforward.
 
-This was honestly a bit disappointing as there were multiple mentions throughout the course of additional research being required for some exam questions, as well as having significant portions of the documented (possible) attack surface on K8s clusters being completely absent from the final exam.
+This was honestly a bit disappointing as there were multiple mentions throughout the course of additional research being required for some exam questions, as well as having significant portions of the documented (possible) attack surface on K8s clusters being completely absent from the final exam. 
 
 # Closing thoughts
 
@@ -37,3 +37,4 @@ I'm not sure if I'd pay for another course from CWL, but I'm not upset that I pa
 
 [Proof](https://labs.cyberwarfare.live/credential/achievement/695eb383823d7631cc46d378)
 
+Oh, and a fun thin that made me facepalm - the K8s pods for the exam are long-lived and haven't been rotated in _months_. If you poke around on some of the pods you might find some interesting stuff left behind by previous students... *sigh*

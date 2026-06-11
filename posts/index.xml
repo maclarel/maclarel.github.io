@@ -17,7 +17,7 @@
 </ul>
 </li>
 </ul>
-<p>That&rsquo;s it. Trivial risk to the organization, and the potential to very quickly catch possible leaks.</p>
+<p>That&rsquo;s it. Minimal risk to the organization, and the potential to very quickly catch possible leaks.</p>
 <h1 id="limitations">Limitations</h1>
 <p>This relies on a PAT at the time of writing, so for a larger organization it will very likely run into rate limiting issues. Once converted to a GitHub App this should roughly 3x the throughput that it can handle, but it may be valuable to use the <code>--users-file</code> functionality to split your userbase into more manageable chunks. For an organization of a few hundred employees you&rsquo;ll likely be fine with the PAT, but for an enterprise you&rsquo;ll want to further break this down.</p>
 <h1 id="prs-welcome">PRs welcome</h1>

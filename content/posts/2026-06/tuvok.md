@@ -33,7 +33,7 @@ After that's all done, it'll generate a report for human review, and can then be
     - Org permissions: Members: read
     - Repo permissions: Metadata: read, Contents: read
 
-That's it. Trivial risk to the organization, and the potential to very quickly catch possible leaks.
+That's it. Minimal risk to the organization, and the potential to very quickly catch possible leaks.
 
 # Limitations
 

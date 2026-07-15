@@ -46,7 +46,7 @@ Also, of course, keep in mind that AI isn't a replacement for critical thought. 
 
 # Disclosure & Timelines
 - June 15, 2026 - Reported to GitHub Bug Bounty
-- June 30, 2026 - GitHub closes the report as not having significant security risk, providing a $200 "thank you" award
+- June 30, 2026 - GitHub closes the report providing a $200 "thank you" award
 - June 30, 2026 - Disclosure requested
 - July 14, 2026 - GitHub confirms that the unicode-related issues have been resolved
 - July 15, 2026 - Disclosure granted, with the the following note regarding the reported Copilot functionality:

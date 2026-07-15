@@ -21,7 +21,7 @@
 <h1 id="disclosure--timelines">Disclosure &amp; Timelines</h1>
 <ul>
 <li>June 15, 2026 - Reported to GitHub Bug Bounty</li>
-<li>June 30, 2026 - GitHub closes the report as not having significant security risk, providing a $200 &ldquo;thank you&rdquo; award</li>
+<li>June 30, 2026 - GitHub closes the report providing a $200 &ldquo;thank you&rdquo; award</li>
 <li>June 30, 2026 - Disclosure requested</li>
 <li>July 14, 2026 - GitHub confirms that the unicode-related issues have been resolved</li>
 <li>July 15, 2026 - Disclosure granted, with the the following note regarding the reported Copilot functionality:</li>
